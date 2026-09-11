@@ -67,6 +67,7 @@ VCreatorTools（VCT）は、わんコメ向けのカスタムテンプレート�
 * `VCT_SB_V2_UI/`
 
 * `view_comment_halloween_V2`
+* `view_comment_Halloween_StageFX_V2_dev`
 
 ## VCT SDK V1仕様
 
