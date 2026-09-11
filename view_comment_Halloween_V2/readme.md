@@ -1,4 +1,6 @@
-# View Comment Halloween V2 v0.1.0-dev
+# View Comment Halloween V2 v0.1.0-beta.1
+
+現在は実機確認を進めるベータ版です。基本機能は実装済みですが、正式公開前にOBS環境での継続確認を行います。
 
 10月の配信画面向けに、コメント欄と1920x1080ステージをハロウィン仕様へまとめた、わんコメ用カスタムテンプレートです。`custom_base_template_V2_8_dev` を基盤にしています。
 

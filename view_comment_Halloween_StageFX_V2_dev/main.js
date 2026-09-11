@@ -1,4 +1,4 @@
-// View Comment Halloween V2 v0.1.0-beta.1
+// View Comment Halloween StageFX V2 v0.1.0-dev
 
 const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount } = window.Vue || Vue;
 
@@ -8,6 +8,7 @@ createApp({
     const C = reactive({ ...(window.CONFIG || {}) });
     const appliedConfig = { ...(window.CONFIG || {}) };
     const halloweenIcons = Object.freeze(['🎃', '👻', '🦇', '💀', '🍬', '🕯️', '🕸️', '🧪']);
+    let effectHost = null;
 
     const resolveBackgroundColor = () => {
       const runtime = window.VCT_CONFIG_RUNTIME || {};
@@ -64,6 +65,14 @@ createApp({
       root.style.setProperty('--comment-height', `${Math.max(Number(C.COMMENT_HEIGHT) || 880, 200)}px`);
       root.style.setProperty('--comment-scale', Math.max(Number(C.COMMENT_SCALE) || 1, 0.1));
       updateStageScale();
+      effectHost?.configure({
+        policy: C.STAGE_EFFECT_POLICY,
+        maxActive: C.STAGE_EFFECT_MAX_ACTIVE,
+        queueLimit: C.STAGE_EFFECT_QUEUE_LIMIT
+      });
+      if (C.ENABLE_STAGE_EFFECTS === false || C.REDUCED_MOTION === true) {
+        effectHost?.destroyAll();
+      }
 
       const app = document.getElementById('app');
       if (app) {
@@ -105,6 +114,86 @@ createApp({
     };
 
     const pickHalloweenIcon = () => halloweenIcons[Math.floor(Math.random() * halloweenIcons.length)];
+
+    const stageEffectPattern = (comment) => {
+      const patterns = {
+        superchat: 'candyRain',
+        supersticker: 'randomPop',
+        jewel: 'randomPop',
+        member_join: 'ghostNight',
+        member_milestone: 'ghostNight',
+        membership_event: 'ghostNight',
+        membership_gift: 'parade',
+        membership_gift_received: 'randomPop',
+        unknown: 'parade'
+      };
+      return patterns[comment.eventKind] || (comment.isSupport ? 'parade' : null);
+    };
+
+    const moneyIntensityLevel = (amount, currency) => {
+      if (!(amount > 0)) return null;
+      const code = String(currency || '').toUpperCase();
+      const thresholds = {
+        JPY: [1000, 5000, 10000],
+        KRW: [10000, 50000, 100000],
+        USD: [5, 25, 50], EUR: [5, 25, 50], GBP: [5, 25, 50],
+        CAD: [5, 25, 50], AUD: [5, 25, 50], NZD: [5, 25, 50]
+      }[code];
+      if (!thresholds) return null;
+      if (amount < thresholds[0]) return 'small';
+      if (amount < thresholds[1]) return 'standard';
+      if (amount < thresholds[2]) return 'large';
+      return 'extra';
+    };
+
+    const stageEffectIntensity = (comment) => {
+      if (String(C.STAGE_EFFECT_INTENSITY_MODE || 'value').toLowerCase() !== 'value') return 'standard';
+
+      if (comment.eventKind === 'membership_gift' && comment.giftCount > 0) {
+        if (comment.giftCount >= 20) return 'extra';
+        if (comment.giftCount >= 10) return 'large';
+        if (comment.giftCount <= 2) return 'small';
+        return 'standard';
+      }
+
+      if (comment.eventKind === 'jewel' && comment.jewelCount > 0) {
+        if (comment.jewelCount >= 10000) return 'extra';
+        if (comment.jewelCount >= 1000) return 'large';
+        if (comment.jewelCount < 100) return 'small';
+        return 'standard';
+      }
+
+      return moneyIntensityLevel(comment.moneyAmount, comment.moneyCurrency) || 'standard';
+    };
+
+    const triggerStageEffect = (comment) => {
+      if (!effectHost || C.ENABLE_STAGE_EFFECTS === false || C.REDUCED_MOTION === true) return;
+      if (!comment.isSupport && !comment.isMembership) return;
+      const pattern = stageEffectPattern(comment);
+      if (!pattern) return;
+
+      const duration = Math.max(1200, Math.min(10000, Number(C.STAGE_EFFECT_DURATION_MS) || 4200));
+      const baseCount = Math.max(1, Math.min(60, Number(C.STAGE_EFFECT_COUNT) || 18));
+      const intensity = stageEffectIntensity(comment);
+      const strength = {
+        small: { count: 0.6, size: 0.78, duration: 0.72, motion: 0.72, backdrop: 0 },
+        standard: { count: 1, size: 1, duration: 1, motion: 0.82, backdrop: 0 },
+        large: { count: 1.45, size: 1.12, duration: 1.12, motion: 1, backdrop: 0.05 },
+        extra: { count: 2, size: 1.28, duration: 1.3, motion: 1.16, backdrop: 0.12 }
+      }[intensity];
+      const imageMode = C.STAGE_EFFECT_RENDER_MODE === 'image';
+      effectHost.trigger('halloween_parade_effect', {
+        renderMode: imageMode ? 'image' : 'emoji',
+        pattern,
+        count: Math.min(60, Math.max(1, Math.round(baseCount * strength.count))),
+        minSize: Math.round((imageMode ? 62 : 48) * strength.size),
+        maxSize: Math.round((imageMode ? 128 : 104) * strength.size),
+        travelTimeMs: Math.min(10000, Math.round(duration * strength.duration)),
+        duration: Math.min(10000, Math.round(duration * strength.duration)),
+        motionPower: strength.motion,
+        bgOpacity: Math.max(0, Math.min(0.7, (Number(C.STAGE_EFFECT_BG_OPACITY) || 0) + strength.backdrop))
+      });
+    };
 
     const extractMembershipMonths = (parsed) => {
       const membership = parsed?.membership || {};
@@ -330,6 +419,10 @@ createApp({
         isMembership,
         isSticky: !!parsed.system?.sticky,
         eventKind: String(event.kind || 'comment').replace(/[^a-z0-9_-]/gi, ''),
+        moneyAmount: Number(parsed.monetization?.money?.amount) || 0,
+        moneyCurrency: parsed.monetization?.money?.currency || '',
+        jewelCount: Number(parsed.monetization?.jewels) || 0,
+        giftCount: Number(parsed.membership?.giftCount) || 0,
         halloweenIcon: pickHalloweenIcon(),
         isSpecial,
         colorStr: parsed.style?.colorString,
@@ -356,6 +449,7 @@ createApp({
       };
 
       comments.value.push(newCmt);
+      triggerStageEffect(newCmt);
       if (comments.value.length > (C.MAX_ITEMS || 10)) {
         comments.value.shift();
       }
@@ -369,6 +463,12 @@ createApp({
     };
 
     onMounted(() => {
+      if (window.StageEffectHost && window.EffectContext) {
+        effectHost = new window.StageEffectHost({
+          container: document.querySelector('.stage__effects'),
+          backdrop: document.querySelector('.stage__effect-backdrop')
+        });
+      }
       updateStyle();
       window.addEventListener('resize', updateStageScale);
       window.addEventListener('vct-settings-preview', handleSettingsPreview);
@@ -400,7 +500,7 @@ createApp({
 
       OneSDK.ready().then(() => {
         OneSDK.connect();
-        console.log(`View Comment Halloween V2 v0.1.0-beta.1: Ready (SDK: ${VCT_SDK.VERSION}, Stack: ${C.STACK_DIRECTION || 'up'})`);
+        console.log(`View Comment Halloween StageFX V2 v0.1.0-dev: Ready (SDK: ${VCT_SDK.VERSION}, Stack: ${C.STACK_DIRECTION || 'up'})`);
       });
     });
 
@@ -408,6 +508,8 @@ createApp({
       window.removeEventListener('vct-settings-preview', handleSettingsPreview);
       window.removeEventListener('vct-settings-reset-preview', handleSettingsReset);
       window.removeEventListener('resize', updateStageScale);
+      effectHost?.destroy();
+      effectHost = null;
     });
 
     return {
