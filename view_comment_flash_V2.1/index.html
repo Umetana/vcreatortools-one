@@ -1,0 +1,98 @@
+<!-- custom base template v2 index.html -->
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View Comment Flash V2.1</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="app" :class="stackClass">
+    <!-- コメントリスト -->
+    <transition-group name="list" tag="div" class="cmt-list">
+      <div v-for="cmt in comments" :key="cmt.id" class="cmt-shell">
+        <div class="cmt" :class="{
+          'cmt-gift': cmt.isSupport,
+          'cmt-member': cmt.isMembership,
+          'cmt-system': cmt.isSticky,
+          'effect-glow': (cmt.isSupport || cmt.isMembership) && effectFor(cmt) !== 'none',
+          'effect-shimmer': (cmt.isSupport || cmt.isMembership) && effectFor(cmt) === 'shimmer',
+          'effect-sweep': (cmt.isSupport || cmt.isMembership) && effectFor(cmt) === 'sweep',
+          'effect-aurora': (cmt.isSupport || cmt.isMembership) && effectFor(cmt) === 'aurora'
+        }" :style="cmt.giftColor ? { '--gift-color': cmt.giftColor } : {}">
+
+          <!-- キラキラ演出 (Glint) -->
+          <div v-if="(cmt.isSupport || cmt.isMembership) && effectFor(cmt) === 'glint'" class="cmt__glint-container">
+            <svg class="cmt__glint cmt__glint--primary" viewBox="0 0 24 24"><path d="M12,0 L14.5,9.5 L24,12 L14.5,14.5 L12,24 L9.5,14.5 L0,12 L9.5,9.5 Z"/></svg>
+            <svg class="cmt__glint cmt__glint--secondary" viewBox="0 0 24 24"><path d="M12,0 L14.5,9.5 L24,12 L14.5,14.5 L12,24 L9.5,14.5 L0,12 L9.5,9.5 Z"/></svg>
+          </div>
+
+          <!-- ボーダートレース演出 (Trace) -->
+          <div v-if="(cmt.isSupport || cmt.isMembership) && effectFor(cmt) === 'trace'" class="cmt__trace-container">
+            <svg class="cmt__trace-svg">
+              <rect class="cmt__trace-rect" pathLength="100" />
+            </svg>
+          </div>
+
+          <!-- アイコン -->
+          <div v-if="config.SHOW_ICON && cmt.profileImage" class="cmt__icon">
+            <img :src="cmt.profileImage" alt="">
+          </div>
+
+          <div class="cmt__content">
+            <!-- ヘッダー (名前・バッジ・メタ情報) -->
+            <div v-if="config.SHOW_NAME || config.SHOW_BADGES || cmt.metaLabels.length" class="cmt__header">
+              <span v-if="config.SHOW_NAME" class="cmt__name">{{ cmt.name }}</span>
+              <div v-if="config.SHOW_BADGES" class="cmt__badges">
+                <span v-for="(b, i) in cmt.badges" :key="b.url || b.label || i" class="cmt__badge">
+                  <img v-if="b.url" :src="b.url" :title="b.label">
+                  <span v-else class="cmt__badge-text">{{ b.label }}</span>
+                </span>
+              </div>
+              <div v-if="cmt.metaLabels.length" class="cmt__meta">
+                <span v-for="(label, i) in cmt.metaLabels" :key="label.type + ':' + label.text + ':' + i" class="cmt__meta-label"
+                  :class="'cmt__meta-label--' + label.type">{{ label.text }}</span>
+              </div>
+            </div>
+
+            <!-- メッセージ本文 (テキスト+絵文字混合対応) -->
+            <div v-if="cmt.parts.length" class="cmt__message">
+              <template v-for="(p, i) in cmt.parts" :key="i">
+                <span v-if="p.type === 'text'">{{ p.content }}</span>
+                <img v-else-if="p.type === 'emoji'" :src="p.url" class="emoji" :class="{ 'emoji--sticker': p.isSticker }"
+                  :alt="p.alt">
+              </template>
+            </div>
+            <div v-if="cmt.translationParts && cmt.translationParts.length" class="cmt__message cmt__message--translation">
+              <template v-for="(p, i) in cmt.translationParts" :key="'tr-' + i">
+                <span v-if="p.type === 'text'">{{ p.content }}</span>
+                <img v-else-if="p.type === 'emoji'" :src="p.url" class="emoji" :class="{ 'emoji--sticker': p.isSticker }"
+                  :alt="p.alt">
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </transition-group>
+  </div>
+
+  <!-- 公式ライブラリ参照 -->
+  <script src="../__origin/js/vue3.min.js"></script>
+  <script src="../__origin/js/onesdk.js"></script>
+
+  <script src="./config_default.js"></script>
+  <script src="./config.js"></script>
+  <script src="./settings/config-runtime.js"></script>
+  <!-- V-Creator Tools: Core SDK -->
+  <script src="./lib/vct_sdk.js"></script>
+
+  <!-- template main.js -->
+  <script src="./settings/settings-launcher.js"></script>
+  <script src="./main.js"></script>
+</body>
+
+</html>

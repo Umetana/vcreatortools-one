@@ -1,0 +1,486 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700&display=swap');
+
+:root {
+  --bg-glass: rgba(0, 0, 0, 0.45);
+  --bg-blur: 12px;
+  --text-main: #ffffff;
+  --text-name: #eeeeee;
+  --accent-color: #ffd700;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* --- エラーマーク対策の追記 --- */
+.cmt__badge img:not([src]),
+.cmt__badge img[src=""],
+.cmt__badge img[src="undefined"] {
+  display: none !important;
+}
+
+/* ---------------------------- */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.stack-up {
+  justify-content: flex-end;
+}
+
+.stack-down {
+  justify-content: flex-start;
+}
+
+.cmt-list {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--max-width, 900px);
+  width: 100%;
+  position: relative;
+}
+
+.stack-up .cmt-list {
+  flex-direction: column;
+}
+
+.stack-down .cmt-list {
+  flex-direction: column-reverse;
+}
+
+.cmt-shell {
+  position: relative;
+  margin-bottom: var(--item-gap);
+  width: 100%;
+}
+
+.cmt {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--bg-blur));
+  -webkit-backdrop-filter: blur(var(--bg-blur));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  min-width: 120px;
+  position: relative;
+  overflow: visible;
+}
+
+.cmt-shell:last-child {
+  margin-bottom: 0;
+}
+
+.cmt-gift {
+  --gift-color: var(--accent-color);
+  border-color: color-mix(in srgb, var(--gift-color) calc(var(--gift-border-opacity) * 100%), transparent);
+  background: color-mix(in srgb, var(--gift-color) calc(var(--gift-bg-opacity) * 100%), var(--bg-glass));
+}
+
+.cmt-member {
+  --gift-color: #0f9d58;
+  border-color: color-mix(in srgb, var(--gift-color) 85%, transparent);
+  background: color-mix(in srgb, var(--gift-color) calc(var(--gift-bg-opacity) * 100%), var(--bg-glass));
+}
+
+.cmt-system {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.cmt__icon {
+  flex: 0 0 auto;
+  width: var(--icon-size, 48px);
+  height: var(--icon-size, 48px);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cmt__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cmt__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cmt__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: calc(var(--font-size) * var(--meta-scale));
+}
+
+.cmt__name {
+  font-weight: 700;
+  color: var(--text-name);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmt__badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cmt__badge img {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+}
+
+.cmt__badge-text {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.cmt__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cmt__meta-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45em;
+  padding: 0 0.5em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-main);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.cmt__meta-label--gift {
+  background: color-mix(in srgb, var(--gift-color, var(--accent-color)) 38%, rgba(255, 255, 255, 0.12));
+}
+
+.cmt__meta-label--member {
+  background: rgba(15, 157, 88, 0.55);
+}
+
+.cmt__meta-label--system {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.cmt__message {
+  font-size: var(--font-size);
+  line-height: 1.45;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.cmt__message--translation {
+  margin-top: 0.18em;
+  color: color-mix(in srgb, var(--text-main) 78%, transparent);
+  font-size: calc(var(--font-size) * 0.86);
+}
+
+.emoji {
+  height: 1.25em;
+  width: auto;
+  vertical-align: -0.2em;
+  margin: 0 0.1em;
+}
+
+.emoji--sticker {
+  height: 2.4em;
+  vertical-align: -0.65em;
+}
+
+.list-enter-active {
+  transition:
+    opacity var(--fade-in) ease,
+    transform var(--fade-in) cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.list-leave-active {
+  transition:
+    opacity var(--fade-out) ease,
+    transform var(--fade-out) cubic-bezier(0.23, 1, 0.32, 1);
+  position: absolute;
+  width: 100%;
+  max-width: var(--max-width, 900px);
+  z-index: 0;
+}
+
+.stack-up .list-enter-from {
+  opacity: 0;
+  transform: translateY(calc(100% + var(--item-gap)));
+}
+
+.stack-down .list-enter-from {
+  opacity: 0;
+  transform: translateY(calc(-100% - var(--item-gap)));
+}
+
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+}
+
+.list-move {
+  transition: transform 0.4s ease;
+}
+
+/* --- Gift/Membership Effects --- */
+
+/* 1. Glow Effect */
+.cmt.effect-glow {
+  box-shadow:
+    var(--shadow-soft),
+    0 0 8px color-mix(in srgb, var(--gift-color) 90%, transparent),
+    0 0 25px color-mix(in srgb, var(--gift-color) 50%, transparent),
+    0 0 50px color-mix(in srgb, var(--gift-color) 25%, transparent);
+  border-color: color-mix(in srgb, var(--gift-color) 75%, #ffffff);
+}
+
+/* 2. Shimmer Effect */
+.cmt.effect-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  mix-blend-mode: overlay;
+  animation: cmt-shimmer 4s infinite ease-in-out;
+}
+
+@keyframes cmt-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  30% {
+    background-position: -50% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+/* 3. Sweep Effect */
+.cmt.effect-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 42%,
+    #ffffff 50%,
+    transparent 58%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  mix-blend-mode: overlay;
+  animation: cmt-sweep 4s infinite cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes cmt-sweep {
+  0% {
+    background-position: 150% 0;
+  }
+  20% {
+    background-position: -50% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+/* 4. Glint Effect (Sparkles) */
+.cmt__glint-container {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cmt__glint {
+  position: absolute;
+  fill: #ffffff;
+  filter: drop-shadow(0 0 4px var(--gift-color));
+  transform: scale(0) rotate(0deg);
+  opacity: 0;
+}
+
+.cmt__glint--primary {
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  animation: cmt-sparkle-primary 5s infinite ease-in-out;
+}
+
+.cmt__glint--secondary {
+  top: 12px;
+  left: 12px;
+  width: 11px;
+  height: 11px;
+  animation: cmt-sparkle-secondary 5s infinite ease-in-out;
+}
+
+@keyframes cmt-sparkle-primary {
+  0%, 70%, 100% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.2) rotate(90deg);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(0) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cmt-sparkle-secondary {
+  0%, 75%, 100% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.1) rotate(-45deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0) rotate(-90deg);
+    opacity: 0;
+  }
+}
+
+/* 5. Aurora Effect */
+.cmt.effect-aurora::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    var(--gift-color) 0%,
+    color-mix(in srgb, var(--gift-color) 60%, #ffffff) 30%,
+    color-mix(in srgb, var(--gift-color) 60%, #000000) 70%,
+    var(--gift-color) 100%
+  );
+  background-size: 300% 300%;
+  animation: cmt-aurora-bg 8s infinite ease-in-out alternate, cmt-aurora-hue 12s infinite ease-in-out alternate;
+  opacity: 0.85;
+}
+
+@keyframes cmt-aurora-bg {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes cmt-aurora-hue {
+  0% {
+    filter: hue-rotate(-35deg);
+  }
+  100% {
+    filter: hue-rotate(35deg);
+  }
+}
+
+/* 6. Border Trace Effect */
+.cmt__trace-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+.cmt__trace-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.cmt__trace-rect {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  rx: 12px;
+  ry: 12px;
+  fill: none;
+  stroke: var(--gift-color);
+  stroke-width: 3.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 20 80;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 5px var(--gift-color)) drop-shadow(0 0 2px #ffffff);
+  animation: cmt-trace-anim 4s infinite linear;
+}
+
+@keyframes cmt-trace-anim {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
