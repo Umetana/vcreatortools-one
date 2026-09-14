@@ -5,7 +5,7 @@
 ## 1. システム構成
 
 - UI Framework: Vue.js 3 (Composition API)
-- SDK: OneSDK / VCT SDK (`vct_one_core.js`) v1.2.6-dev
+- SDK: OneSDK / VCT SDK (`vct_one_core.js`) v1.2.7-dev
 - Styling: Vanilla CSS + CSS Variables
 
 ## 2. フォルダ構成
@@ -21,7 +21,7 @@
 - `settings/settings-schema.js`: 画面内設定パネルの項目定義。
 - `settings/settings-panel.js`: 設定パネルDOM、ファイル読込、localStorage保存を担当。
 - `settings/settings-panel.css`: 設定パネル専用スタイル。ギアクリック時に読み込む。
-- `lib/vct_one_core.js`: VCT SDK v1.2.6-dev。
+- `lib/vct_one_core.js`: VCT SDK v1.2.7-dev。
 
 ## 3. データ処理
 

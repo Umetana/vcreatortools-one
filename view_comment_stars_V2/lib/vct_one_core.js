@@ -1,11 +1,11 @@
 /**
- * V-Creator Tools: OneComme Core SDK (VCT) v1.2.6-dev
+ * V-Creator Tools: OneComme Core SDK (VCT) v1.2.7-dev
  * 
  * 共通のコメント解析ロジックを提供し、各テンプレートのコードを簡略化します。
  */
 
 window.VCT = (function () {
-    const VERSION = '1.2.6-dev';
+    const VERSION = '1.2.7-dev';
     const DEFAULT_COLOR = { r: 255, g: 255, b: 255 };
 
     /**
@@ -482,6 +482,11 @@ window.VCT = (function () {
         const supportAmount = core.event?.isGiftSender && core.event?.giftCount > 0
             ? core.event.giftCount
             : amount;
+
+        // ジュエル数は法定通貨の支援金額ではないため、supports には保存しない
+        if (core.event?.kind === 'jewel') {
+            return null;
+        }
 
         if (!core.event?.isSupport || supportAmount <= 0) {
             return null;

@@ -2,7 +2,7 @@
 
 ギフトコメントに `★` が斜めに降り注ぐ、わんコメ用のGlass系カスタムテンプレートです。
 
-VCT SDK (`vct_one_core.js`) v1.2.6-dev の `parseStructured()` / `event` レイヤーに対応し、コメント本文と支援・メンバーシップ情報を分離して表示します。
+VCT SDK (`vct_one_core.js`) v1.2.7-dev の `parseStructured()` / `event` レイヤーに対応し、コメント本文と支援・メンバーシップ情報を分離して表示します。
 
 ## 主な機能
 
