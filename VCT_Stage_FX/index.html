@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VCT Stage FX</title>
+  <link rel="stylesheet" href="styles/stage.css">
+  <link rel="stylesheet" href="widgets/comments/style.css">
+
+  <link rel="stylesheet" href="widgets/comments/display/style.css">
+  <link rel="stylesheet" href="widgets/comments/effects/heart/style.css">
+  <link rel="stylesheet" href="widgets/comments/effects/stars/style.css">
+  <link rel="stylesheet" href="widgets/comments/effects/flash/style.css">
+  <link rel="stylesheet" href="effects/shared/style.css">
+</head>
+<body>
+  <main id="stage" aria-label="配信ステージ">
+    <div class="stage-layer" data-layer="background" aria-hidden="true"></div>
+    <div class="stage-layer" data-layer="ambient" aria-hidden="true"></div>
+    <div class="stage-layer" data-layer="widgets"></div>
+    <div class="stage-layer" data-layer="backdrop" aria-hidden="true"></div>
+    <div class="stage-layer" data-layer="effects" aria-hidden="true"></div>
+    <div class="stage-layer" data-layer="foreground" aria-hidden="true"></div>
+  </main>
+  <script src="../__origin/js/vue3.min.js"></script>
+  <script src="../__origin/js/onesdk.js"></script>
+  <script src="lib/vct_sdk.js"></script>
+  <script src="config_default.js"></script>
+  <script src="config.js"></script>
+  <script src="settings/config-runtime.js"></script>
+  <script src="runtime/stage-layout.js"></script>
+  <script src="runtime/effect-registry.js"></script>
+  <script src="runtime/effect-context.js"></script>
+  <script src="runtime/effect-host.js"></script>
+  <script src="effects/shared/celebration.js"></script>
+  <script src="effects-list.js"></script>
+  <script src="runtime/effect-catalog.js"></script>
+  <script src="adapters/onecomme-adapter.js"></script>
+  <script src="widgets/comments/effects/heart/main.js"></script>
+  <script src="widgets/comments/effects/stars/main.js"></script>
+  <script src="widgets/comments/effects/flash/main.js"></script>
+  <script src="widgets/comments/display/main.js"></script>
+  <script src="widgets/comments/display/underbar-stack.js"></script>
+  <script src="widgets/comments/display/underbar.js"></script>
+  <script src="widgets/comments/main.js"></script>
+  <script src="triggers.js"></script>
+  <script src="main.js"></script>
+  <script src="settings/settings-launcher.js"></script>
+</body>
+</html>

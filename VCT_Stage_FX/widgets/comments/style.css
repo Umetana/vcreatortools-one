@@ -1,0 +1,271 @@
+.vct-comments {
+  --bg-glass: rgba(0, 0, 0, 0.45);
+  --bg-blur: 12px;
+  --text-main: #ffffff;
+  --text-name: #eeeeee;
+  --accent-color: #ffd700;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --base-border-color: #ffffff;
+  --base-border-opacity: 0.15;
+  --base-border-width: 1px;
+  --system-border-opacity: 0.35;
+}
+
+.vct-comments .cmt__badge img:not([src]),
+.vct-comments .cmt__badge img[src=""],
+.vct-comments .cmt__badge img[src="undefined"] {
+  display: none !important;
+}
+
+.vct-comments {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.vct-comments.stack-up {
+  justify-content: flex-end;
+}
+
+.vct-comments.stack-down {
+  justify-content: flex-start;
+}
+
+.vct-comments .cmt-list {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--max-width, 900px);
+  width: 100%;
+  position: relative;
+}
+
+.vct-comments.stack-up .cmt-list {
+  flex-direction: column;
+}
+
+.vct-comments.stack-down .cmt-list {
+  flex-direction: column-reverse;
+}
+
+.vct-comments .cmt-shell {
+  position: relative;
+  margin-bottom: var(--item-gap);
+  width: 100%;
+}
+
+.vct-comments .cmt {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--bg-blur));
+  -webkit-backdrop-filter: blur(var(--bg-blur));
+  border: var(--base-border-width) solid color-mix(in srgb, var(--base-border-color) calc(var(--base-border-opacity) * 100%), transparent);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  min-width: 120px;
+  position: relative;
+  overflow: visible;
+}
+
+.vct-comments .cmt-shell:last-child {
+  margin-bottom: 0;
+}
+
+.vct-comments .cmt-gift {
+  border-color: color-mix(in srgb, var(--gift-color, var(--accent-color)) calc(var(--gift-border-opacity) * 100%), transparent);
+  background: color-mix(in srgb, var(--gift-color, var(--accent-color)) calc(var(--gift-bg-opacity) * 100%), var(--bg-glass));
+}
+
+.vct-comments .cmt-member {
+  border-color: color-mix(in srgb, rgba(15, 157, 88, 1) calc(var(--member-border-opacity) * 100%), transparent);
+  background: color-mix(in srgb, rgba(15, 157, 88, 1) calc(var(--member-bg-opacity) * 100%), var(--bg-glass));
+}
+
+.vct-comments .cmt-system {
+  border-color: color-mix(in srgb, #ffffff calc(var(--system-border-opacity) * 100%), transparent);
+}
+
+.vct-comments .cmt__icon {
+  flex: 0 0 auto;
+  width: var(--icon-size, 48px);
+  height: var(--icon-size, 48px);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.vct-comments .cmt__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vct-comments .cmt__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vct-comments .cmt__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: calc(var(--font-size) * var(--meta-scale));
+}
+
+.vct-comments .cmt__name {
+  font-weight: 700;
+  color: var(--text-name);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vct-comments .cmt__badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vct-comments .cmt__badge img {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+}
+
+.vct-comments .cmt__badge-text {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.vct-comments .cmt__user-flags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vct-comments .cmt__user-flag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45em;
+  padding: 0 0.46em;
+  border-radius: 4px;
+  color: #111111;
+  font-size: 0.82em;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.vct-comments .cmt__user-flag--owner {
+  background: #facc15;
+}
+
+.vct-comments .cmt__user-flag--moderator {
+  background: #5eead4;
+}
+
+.vct-comments .cmt__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vct-comments .cmt__meta-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45em;
+  padding: 0 0.5em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-main);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.vct-comments .cmt__meta-label--gift {
+  background: color-mix(in srgb, var(--gift-color, var(--accent-color)) 38%, rgba(255, 255, 255, 0.12));
+}
+
+.vct-comments .cmt__meta-label--member {
+  background: rgba(15, 157, 88, 0.55);
+}
+
+.vct-comments .cmt__meta-label--system {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.vct-comments .cmt__message {
+  font-size: var(--font-size);
+  line-height: 1.45;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.vct-comments .cmt__message--translation {
+  margin-top: 0.18em;
+  color: color-mix(in srgb, var(--text-main) 78%, transparent);
+  font-size: calc(var(--font-size) * 0.86);
+}
+
+.vct-comments .emoji {
+  height: 1.25em;
+  width: auto;
+  vertical-align: -0.2em;
+  margin: 0 0.1em;
+}
+
+.vct-comments .emoji--sticker {
+  height: 2.4em;
+  vertical-align: -0.65em;
+}
+
+.vct-comments .list-enter-active {
+  transition:
+    opacity var(--fade-in) ease,
+    transform var(--fade-in) cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.vct-comments .list-leave-active {
+  transition:
+    opacity var(--fade-out) ease,
+    transform var(--fade-out) cubic-bezier(0.23, 1, 0.32, 1);
+  position: absolute;
+  width: 100%;
+  max-width: var(--max-width, 900px);
+  z-index: 0;
+}
+
+.vct-comments.stack-up .list-enter-from {
+  opacity: 0;
+  transform: translateY(calc(100% + var(--item-gap)));
+}
+
+.vct-comments.stack-down .list-enter-from {
+  opacity: 0;
+  transform: translateY(calc(-100% - var(--item-gap)));
+}
+
+.vct-comments .list-leave-to {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+}
+
+.vct-comments .list-move {
+  transition: transform 0.4s ease;
+}
+
+
+.stage-region.show-frame { outline: 1px dashed #8dcfff; outline-offset: -1px; }

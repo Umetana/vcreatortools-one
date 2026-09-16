@@ -1,0 +1,30 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const fs = require('node:fs');
+const path = require('node:path');
+const window = {};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../widgets/comments/effects/stars/main.js'), 'utf8'), { window, getComputedStyle: el => ({ width: el.getBoundingClientRect().width }) });
+const stars = window.VCT_STARS;
+test('Starsは固定のみを除き支援・メンバーを対象とする', () => {
+  const c = { COMMENT_EFFECT: 'stars', STAR_TARGET: 'support-membership' };
+  assert.ok(stars.eligible({ isSupport: true }, c));
+  assert.ok(stars.eligible({ isMembership: true }, c));
+  assert.ok(!stars.eligible({ isSticky: true }, c));
+  assert.ok(!stars.eligible({}, c));
+  assert.ok(!stars.eligible({ isMembership: true }, { ...c, STAR_TARGET: 'support' }));
+  assert.ok(stars.eligible({}, { ...c, STAR_TARGET: 'all' }));
+  assert.ok(!stars.eligible({ isSupport: true }, { ...c, COMMENT_EFFECT: 'flash' }));
+});
+test('配置保持・左右反転・設定範囲と不正色の復帰', () => {
+  const seeds = stars.createSeeds(), p = seeds.particles[0];
+  const right = stars.particleStyle(p, seeds, {});
+  const left = stars.particleStyle(p, seeds, { STAR_DIRECTION: 'down-left' });
+  assert.equal(parseFloat(right['--star-dx']), -parseFloat(left['--star-dx']));
+  assert.deepEqual(stars.particleStyle(p, seeds, {}), right);
+  assert.ok(parseFloat(right.fontSize) >= 14 && parseFloat(right.fontSize) <= 28);
+  const inverted = stars.particleStyle(p, seeds, { STAR_SIZE_MIN: 40, STAR_SIZE_MAX: 10, STAR_DURATION_MIN: 5, STAR_DURATION_MAX: 2 });
+  assert.equal(inverted.fontSize, '40px'); assert.equal(inverted.animationDuration, '5s');
+  assert.equal(stars.palette('bad, url(x)')[0], '#fff7ad');
+  assert.equal(stars.palette('#123456, bad')[0], '#123456');
+});

@@ -1,0 +1,53 @@
+/* Stars V2の回転・拡大・明滅・色相変化を継承。 */
+.v3-stars-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+
+.v3-star {
+  position: absolute;
+  opacity: 0;
+  display: inline-block;
+  line-height: 1;
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 14px rgba(255, 255, 255, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.28);
+  animation-name: v3-star-shower;
+  animation-timing-function: cubic-bezier(0.16, 0.84, 0.36, 1);
+  animation-iteration-count: infinite;
+  user-select: none;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes v3-star-shower {
+  0% {
+    transform: translate(0, -18px) scale(0.55) rotate(0deg);
+    opacity: 0;
+    filter: brightness(1.15) hue-rotate(0deg);
+  }
+
+  16% {
+    opacity: 1;
+    filter: brightness(1.95) hue-rotate(18deg);
+  }
+
+  46% {
+    opacity: 0.78;
+    filter: brightness(1.25) hue-rotate(-18deg);
+  }
+
+  72% {
+    opacity: 0.92;
+    filter: brightness(1.75) hue-rotate(32deg);
+  }
+
+  100% {
+    transform: translate(var(--star-dx), var(--star-dy)) scale(1.04) rotate(var(--star-rotate));
+    opacity: 0;
+    filter: brightness(1.05) hue-rotate(0deg);
+  }
+}
