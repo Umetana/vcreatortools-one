@@ -419,7 +419,7 @@
     sourceText.className = 'vct-settings-source';
     const versionText = document.createElement('p');
     versionText.className = 'vct-settings-version';
-    versionText.textContent = 'VCT Stage FX 初期実装';
+    versionText.textContent = 'VCT Stage FX v1.0.0';
     headingWrap.append(heading, versionText, sourceText);
     const closeButton = createButton('\u00d7', 'vct-settings-close', close);
     closeButton.title = '閉じる';
