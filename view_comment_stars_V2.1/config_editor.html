@@ -1,0 +1,584 @@
+<!-- View Comment Stars V2.7.2 - Config Editor -->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Comment Stars V2.1 - Config File Editor</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #ffd700;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .help {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="color"],
+        select {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        input[type="color"] {
+            padding: 4px;
+            height: 42px;
+            width: 70px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .actions {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        button {
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .footer-note b {
+            color: var(--accent-color);
+        }
+
+        .status-note {
+            margin-top: 18px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .status-note.is-ok {
+            color: #86efac;
+        }
+
+        .status-note.is-error {
+            color: #fca5a5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>View Comment Stars V2.7.2</h1>
+            <div class="subtitle">Settings Editor</div>
+        </header>
+
+        <div id="controls">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="actions">
+            <button class="btn-secondary" onclick="resetDefaults()">デフォルトに戻す</button>
+            <button class="btn-secondary" onclick="openConfigFile()">config.jsを開く</button>
+            <button class="btn-primary" onclick="saveConfigFile()">config.jsへ上書き保存</button>
+            <button class="btn-primary" onclick="downloadConfig()">config.jsをダウンロード</button>
+        </div>
+        <div id="statusNote" class="status-note"></div>
+    </div>
+
+    <div class="footer-note">
+        わんコメのカスタムテンプレート置き場やブラウザのセキュリティ設定により、<b>config.jsを開く</b> / <b>上書き保存</b> が使えない場合があります。<br>
+        確実な方法は <b>config.jsをダウンロード</b> して、テンプレートフォルダ内の <b>config.js</b> と入れ替えることです。
+    </div>
+
+    <script>
+        const CONFIG_SCHEMA = {
+            general: {
+                title: '基本表示設定',
+                fields: {
+                    MAX_ITEMS: { type: 'number', label: '最大表示件数', help: '画面内に表示するコメントの最大数' },
+                    MAX_WIDTH: { type: 'text', label: '最大横幅', help: '枠の最大幅 (例: 900px, 100%)' },
+                    STACK_DIRECTION: { type: 'select', options: ['up', 'down'], label: '積み上げ方向', help: '新しいコメントを上(down)か下(up)に積むか' },
+                    ITEM_GAP_PX: { type: 'number', label: 'コメント間の隙間 (px)', help: 'コメント枠同士の縦の距離' },
+                }
+            },
+            toggle: {
+                title: '要素表示・非表示',
+                fields: {
+                    SHOW_ICON: { type: 'checkbox', label: 'アイコンを表示', help: 'ユーザーのアイコン画像を表示します' },
+                    SHOW_NAME: { type: 'checkbox', label: '名前を表示', help: 'ユーザー名を表示します' },
+                    SHOW_BADGES: { type: 'checkbox', label: 'バッジを表示', help: 'メンバーシップ等のバッジを表示します' },
+                    SHOW_USER_FLAGS: { type: 'checkbox', label: 'OWNER/MODを表示', help: '配信者とモデレーターのユーザー属性バッジを表示します' },
+                    COMMENT_TRANSLATION_MODE: { type: 'select', options: ['original', 'translated', 'both'], label: '翻訳表示', help: 'YouTube自動翻訳がある場合の本文表示を切り替えます' },
+                    MAX_COMMENT_UNITS: { type: 'number', label: '本文上限', help: '0で無制限。1以上で文字・絵文字換算の上限を指定します' },
+                }
+            },
+            eventMessages: {
+                title: 'イベント本文表示',
+                fields: {
+                    SHOW_EVENT_MESSAGES: { type: 'checkbox', label: 'イベント本文を表示', help: 'スパチャ、メンバーシップ、メンギフ等の本文表示をまとめて切り替えます' },
+                    SHOW_EVENT_MESSAGE_SUPERCHAT: { type: 'checkbox', label: 'スーパーチャット', help: 'スーパーチャットの本文を表示します' },
+                    SHOW_EVENT_MESSAGE_SUPERSTICKER: { type: 'checkbox', label: 'スーパーステッカー', help: 'スーパーステッカーの本文・画像を表示します' },
+                    SHOW_EVENT_MESSAGE_MEMBERSHIP_COMMENT: { type: 'checkbox', label: 'メンバーシップ継続', help: 'メンバーシップ継続・マイルストーン系の本文を表示します' },
+                    SHOW_EVENT_MESSAGE_MEMBER_JOIN: { type: 'checkbox', label: 'メンバーシップ加入', help: 'メンバーシップ加入の本文を表示します' },
+                    SHOW_EVENT_MESSAGE_MEMBERSHIP_GIFT: { type: 'checkbox', label: 'メンギフ送信', help: 'メンバーシップギフト送信の本文を表示します' },
+                    SHOW_EVENT_MESSAGE_GIFT_RECEIVED: { type: 'checkbox', label: 'メンギフ受取', help: 'メンバーシップギフト受け取りの本文を表示します。初期OFF推奨' },
+                }
+            },
+            font: {
+                title: 'フォント・テキスト',
+                fields: {
+                    FONT_FAMILY: { type: 'text', label: 'フォント指定', help: 'CSSのfont-family形式' },
+                    FONT_SIZE: { type: 'number', label: '基本文字サイズ (px)', help: 'メッセージ本文の大きさ' },
+                    META_SCALE: { type: 'range', min: 0.5, max: 1.5, step: 0.05, label: '名前・バッジの倍率', help: '名前などの相対的な大きさ' },
+                }
+            },
+            animation: {
+                title: '演出・タイマー',
+                fields: {
+                    AUTO_HIDE_MS: { type: 'number', label: '自動非表示 (ms)', help: '指定時間後に消去 (0で永続表示)' },
+                    FADE_IN_MS: { type: 'number', label: '入場時間 (ms)', help: 'アニメーションの速さ' },
+                    FADE_OUT_MS: { type: 'number', label: '退場時間 (ms)', help: '消える時の速さ' },
+                }
+            },
+            gift: {
+                title: 'ギフト・メンバー強調設定',
+                fields: {
+                    GIFT_BG_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '背景の濃さ', help: 'ギフト枠の塗りつぶし強度' },
+                    GIFT_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '枠線の濃さ', help: 'ギフト枠の縁の強度' },
+                    MEMBER_BG_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: 'メンバー背景の濃さ', help: 'メンバー系コメント枠の塗りつぶし強度' },
+                    MEMBER_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: 'メンバー枠線の濃さ', help: 'メンバー系コメント枠の縁の強度' },
+                }
+            },
+            star: {
+                title: '星降り演出',
+                fields: {
+                    STAR_MODE: { type: 'select', options: ['off', 'gift', 'special', 'always'], label: '星の表示', help: 'gift: ギフト系のみ / special: ギフト・メンバー・固定 / always: 常時' },
+                    STAR_DIRECTION: { type: 'select', options: ['down-right', 'down-left', 'random'], label: '星の向き', help: 'down-right: 左上から右下 / down-left: 右上から左下 / random: コメントごとにランダム' },
+                    STAR_GLYPH: { type: 'text', label: '星文字', help: '演出に使う文字。標準は ★' },
+                    STAR_COUNT: { type: 'number', label: '星数', help: '1コメントあたりに降らせる星の数' },
+                    STAR_COLORS: { type: 'text', label: '星色パレット', help: 'カンマ区切りで2～3色以上を指定できます' },
+                    STAR_SIZE_MIN: { type: 'number', label: '最小サイズ (px)', help: '星の最小サイズ' },
+                    STAR_SIZE_MAX: { type: 'number', label: '最大サイズ (px)', help: '星の最大サイズ' },
+                    STAR_DURATION_MIN: { type: 'number', label: '最短落下時間 (秒)', help: '星が斜めに降る最短時間' },
+                    STAR_DURATION_MAX: { type: 'number', label: '最長落下時間 (秒)', help: '星が斜めに降る最長時間' },
+                    STAR_DELAY_MAX: { type: 'number', label: '最大遅延 (秒)', help: '星ごとの降り始めをずらす最大時間' },
+                }
+            },
+            style: {
+                title: 'カラー・スタイル詳細',
+                fields: {
+                    BG_GLASS: { type: 'text', label: '背景色', help: 'rgba(0,0,0,0.45) 形式など' },
+                    BG_BLUR: { type: 'text', label: 'ぼかし強度', help: '背景の透過ぼかし (例: 12px)' },
+                    BASE_BORDER_COLOR: { type: 'color', label: '通常枠線色', help: '通常コメント枠の線色' },
+                    BASE_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '通常枠線の濃さ', help: '0で通常コメントの枠線を透明にします' },
+                    BASE_BORDER_WIDTH: { type: 'number', label: '通常枠線の太さ (px)', help: '通常コメント枠の線幅' },
+                    SYSTEM_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '固定コメント枠線', help: '0で固定コメントの枠線を透明にします' },
+                    TEXT_MAIN: { type: 'color', label: '本文文字色', help: 'メッセージの色' },
+                    TEXT_NAME: { type: 'color', label: '名前文字色', help: 'ユーザー名のデフォルト色' },
+                    ACCENT_COLOR: { type: 'color', label: 'アクセントカラー', help: 'ギフト等の基本ハイライト色' },
+                    SHADOW_SOFT: { type: 'text', label: '影の設定', help: 'CSSのbox-shadow形式' },
+                    DEBUG: { type: 'checkbox', label: 'デバッグモード', help: '開発者ツールにログを出力' },
+                }
+            }
+        };
+
+        let currentConfig = {};
+        let configFileHandle = null;
+
+        const FILE_PICKER_OPTIONS = {
+            id: 'view-comment-stars-v2-7-config',
+            types: [
+                {
+                    description: 'JavaScript config file',
+                    accept: { 'text/javascript': ['.js'] }
+                }
+            ],
+            excludeAcceptAllOption: false
+        };
+
+        function init() {
+            const baseConfig = window.CONFIG || {};
+
+            loadConfigObject(baseConfig);
+            render();
+            setStatus(
+                supportsFileSystemAccess()
+                    ? '現在の config.js を読み込みました。直接上書き保存はブラウザや配置場所により失敗する場合があります。確実に反映する場合はダウンロード保存を使用してください。'
+                    : 'この環境では直接読み書きに未対応です。config.jsをダウンロードして差し替えてください。'
+            );
+        }
+
+        function getDefaultValue(field) {
+            if (field.type === 'checkbox') return false;
+            if (field.type === 'number' || field.type === 'range') return 0;
+            if (field.type === 'select') return field.options[0];
+            return '';
+        }
+
+        function render() {
+            const container = document.getElementById('controls');
+            let html = '';
+
+            for (const section of Object.values(CONFIG_SCHEMA)) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">${section.title}</div>
+                        <div class="grid">
+                `;
+
+                for (const [key, field] of Object.entries(section.fields)) {
+                    const val = currentConfig[key];
+                    html += `<div class="field">`;
+                    html += `<label for="${key}">${field.label}</label>`;
+
+                    if (field.type === 'checkbox') {
+                        html += `
+                            <div class="field-row">
+                                <input type="checkbox" id="${key}" ${val ? 'checked' : ''} onchange="updateVal('${key}', this.checked)">
+                                <span class="help">${field.help}</span>
+                            </div>
+                        `;
+                    } else if (field.type === 'select') {
+                        html += `
+                            <select id="${key}" onchange="updateVal('${key}', this.value)">
+                                ${field.options.map(opt => `<option value="${opt}" ${opt === val ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                            <span class="help">${field.help}</span>
+                        `;
+                    } else if (field.type === 'range') {
+                        html += `
+                            <div class="field-row">
+                                <input type="range" id="${key}" min="${field.min}" max="${field.max}" step="${field.step}" value="${val}"
+                                       oninput="document.getElementById('${key}_preview').innerText = this.value; updateVal('${key}', parseFloat(this.value))">
+                                <span id="${key}_preview" style="min-width: 40px; text-align: right; font-family: monospace;">${val}</span>
+                            </div>
+                            <span class="help">${field.help}</span>
+                        `;
+                    } else if (field.type === 'color') {
+                        const hexVal = (val && val.startsWith('#')) ? val : '#ffffff';
+                        html += `
+                            <div class="field-row">
+                                <input type="color" id="${key}_picker" value="${hexVal}" oninput="document.getElementById('${key}').value = this.value; updateVal('${key}', this.value)">
+                                <input type="text" id="${key}" value="${val}" oninput="updateVal('${key}', this.value)" style="width: 100px; font-family: monospace;">
+                            </div>
+                            <span class="help">${field.help}</span>
+                        `;
+                    } else {
+                        html += `
+                            <input type="${field.type}" id="${key}" value="${val}" oninput="updateVal('${key}', this.type === 'number' ? parseFloat(this.value) : this.value)">
+                            <span class="help">${field.help}</span>
+                        `;
+                    }
+
+                    html += `</div>`;
+                }
+
+                html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function setStatus(message, state = '') {
+            const el = document.getElementById('statusNote');
+            if (!el) return;
+            el.textContent = message || '';
+            el.classList.toggle('is-ok', state === 'ok');
+            el.classList.toggle('is-error', state === 'error');
+        }
+
+        function supportsFileSystemAccess() {
+            return typeof window.showOpenFilePicker === 'function' && typeof window.showSaveFilePicker === 'function';
+        }
+
+        function loadConfigObject(config) {
+            const baseConfig = config || {};
+            currentConfig = {};
+
+            for (const section of Object.values(CONFIG_SCHEMA)) {
+                for (const [key, field] of Object.entries(section.fields)) {
+                    currentConfig[key] = baseConfig[key] !== undefined ? baseConfig[key] : getDefaultValue(field);
+                }
+            }
+        }
+
+        function updateVal(key, val) {
+            currentConfig[key] = val;
+        }
+
+        function resetDefaults() {
+            if (confirm('すべての設定を初期状態（テンプレートの標準設定）に戻しますか？')) {
+                loadConfigObject(window.CONFIG_DEFAULT || {});
+                render();
+                setStatus('デフォルト設定を読み込みました。保存するまで config.js は変更されません。', 'ok');
+            }
+        }
+
+        function formatConfigValue(val) {
+            if (typeof val === 'string') {
+                return `"${val.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+            }
+
+            return String(val);
+        }
+
+        function findHelpText(key) {
+            for (const s of Object.values(CONFIG_SCHEMA)) {
+                if (s.fields[key]) return s.fields[key].help;
+            }
+            return "";
+        }
+
+        function generateConfigContent() {
+            let content = "// view comment stars V2.1 config.js\n";
+            content += "window.CONFIG = {\n";
+
+            const entries = Object.entries(currentConfig);
+            entries.forEach(([key, val], index) => {
+                const formattedVal = formatConfigValue(val);
+                const helpText = findHelpText(key);
+
+                const comma = (index === entries.length - 1) ? "" : ",";
+                const padding = " ".repeat(Math.max(1, 25 - key.length));
+                content += `  ${key}:${padding}${formattedVal}${comma}${" ".repeat(Math.max(1, 20 - String(formattedVal).length))}// ${helpText}\n`;
+            });
+
+            content += "};\n";
+            return content;
+        }
+
+        function parseConfigContent(content) {
+            const sandbox = {};
+            const config = Function('window', `${content}\n; return window.CONFIG;`)(sandbox);
+            if (!config || typeof config !== 'object') {
+                throw new Error('window.CONFIG が見つかりませんでした。');
+            }
+            return config;
+        }
+
+        async function openConfigFile() {
+            if (!supportsFileSystemAccess()) {
+                setStatus('この環境では config.js の直接読み書きに対応していません。ダウンロード保存を使用してください。', 'error');
+                return;
+            }
+
+            try {
+                const [handle] = await window.showOpenFilePicker(FILE_PICKER_OPTIONS);
+                const file = await handle.getFile();
+                const text = await file.text();
+                const config = parseConfigContent(text);
+                configFileHandle = handle;
+                loadConfigObject(config);
+                render();
+                setStatus(`${file.name} を読み込みました。このファイルへ上書き保存できます。`, 'ok');
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
+                console.error(err);
+                setStatus(`config.js の読み込みに失敗しました: ${err?.message || err}`, 'error');
+            }
+        }
+
+        async function verifyWritablePermission(handle) {
+            const options = { mode: 'readwrite' };
+            if ((await handle.queryPermission(options)) === 'granted') return true;
+            return (await handle.requestPermission(options)) === 'granted';
+        }
+
+        async function saveConfigFile() {
+            if (!supportsFileSystemAccess()) {
+                setStatus('この環境では直接上書き保存に未対応です。config.jsをダウンロードして差し替えてください。', 'error');
+                return;
+            }
+
+            try {
+                if (!configFileHandle) {
+                    configFileHandle = await window.showSaveFilePicker({
+                        ...FILE_PICKER_OPTIONS,
+                        suggestedName: 'config.js'
+                    });
+                }
+
+                if (!(await verifyWritablePermission(configFileHandle))) {
+                    setStatus('config.js への書き込み権限が許可されませんでした。', 'error');
+                    return;
+                }
+
+                const writable = await configFileHandle.createWritable();
+                await writable.write(generateConfigContent());
+                await writable.close();
+                setStatus('config.js を上書き保存しました。OBSなどのブラウザソースを再読み込みすると反映されます。', 'ok');
+            } catch (err) {
+                if (err?.name === 'AbortError') return;
+                console.error(err);
+                setStatus(`config.js の保存に失敗しました: ${err?.message || err}`, 'error');
+            }
+        }
+
+        function downloadConfig() {
+            const content = generateConfigContent();
+            const blob = new Blob([content], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(init, 100);
+        });
+    </script>
+    <script src="./config_default.js"></script>
+    <script src="./config.js"></script>
+</body>
+
+</html>

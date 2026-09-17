@@ -70,6 +70,9 @@ VCreatorTools（VCT）は、わんコメ向けのカスタムテンプレート�
 * `view_comment_Halloween_StageFX_V2_dev`
 
 * `view_comment_flash_v2.1/`
+* `view_comment_heart_V2.1/`
+* `view_comment_stars_V2.1/`
+* `view_comment_Underbar_V2.1/`
 
 * `view_comment_V3/`
   * Heart,Stars,Flash,Underbar等を統合しテンプレ1つで使い分けられるようにしました。
