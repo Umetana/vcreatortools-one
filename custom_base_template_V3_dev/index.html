@@ -1,0 +1,86 @@
+<!-- custom base template v3.0 dev index.html -->
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>custom base template v3.0.0</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="stage"><div id="app" :class="stackClass">
+    <!-- コメントリスト -->
+    <transition-group name="list" tag="div" class="cmt-list">
+      <div v-for="cmt in comments" :key="cmt.id" class="cmt-shell">
+        <div class="cmt" v-card-effect="{ comment: cmt, settings: config }" :class="{ 'cmt-gift': cmt.isSupport, 'cmt-member': cmt.isMembership, 'cmt-system': cmt.isSticky }"
+          :style="cmt.giftColor ? { '--gift-color': cmt.giftColor } : {}">
+
+          <!-- アイコン -->
+          <div v-if="config.SHOW_ICON && cmt.profileImage" class="cmt__icon">
+            <img :src="cmt.profileImage" alt="">
+          </div>
+
+          <div class="cmt__content">
+            <!-- ヘッダー (名前・バッジ・メタ情報) -->
+            <div v-if="config.SHOW_NAME || config.SHOW_BADGES || config.SHOW_USER_FLAGS || cmt.metaLabels.length" class="cmt__header">
+              <span v-if="config.SHOW_NAME" class="cmt__name">{{ cmt.name }}</span>
+              <div v-if="config.SHOW_BADGES" class="cmt__badges">
+                <span v-for="(b, i) in cmt.badges" :key="b.url || b.label || i" class="cmt__badge">
+                  <img v-if="b.url" :src="b.url" :title="b.label">
+                  <span v-else class="cmt__badge-text">{{ b.label }}</span>
+                </span>
+              </div>
+              <div v-if="config.SHOW_USER_FLAGS && cmt.userFlags.length" class="cmt__user-flags">
+                <span v-for="flag in cmt.userFlags" :key="flag.type" class="cmt__user-flag"
+                  :class="'cmt__user-flag--' + flag.type">{{ flag.text }}</span>
+              </div>
+              <div v-if="cmt.metaLabels.length" class="cmt__meta">
+                <span v-for="(label, i) in cmt.metaLabels" :key="label.type + ':' + label.text + ':' + i" class="cmt__meta-label"
+                  :class="'cmt__meta-label--' + label.type">{{ label.text }}</span>
+              </div>
+            </div>
+
+            <!-- メッセージ本文 (テキスト+絵文字混合対応) -->
+            <div v-if="cmt.parts.length" class="cmt__message">
+              <template v-for="(p, i) in cmt.parts" :key="i">
+                <span v-if="p.type === 'text'">{{ p.content }}</span>
+                <img v-else-if="p.type === 'emoji'" :src="p.url" class="emoji" :class="{ 'emoji--sticker': p.isSticker }"
+                  :alt="p.alt">
+              </template>
+            </div>
+            <div v-if="cmt.translationParts && cmt.translationParts.length" class="cmt__message cmt__message--translation">
+              <template v-for="(p, i) in cmt.translationParts" :key="'tr-' + i">
+                <span v-if="p.type === 'text'">{{ p.content }}</span>
+                <img v-else-if="p.type === 'emoji'" :src="p.url" class="emoji" :class="{ 'emoji--sticker': p.isSticker }"
+                  :alt="p.alt">
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </transition-group>
+  </div>
+
+  </div>
+  <!-- 公式ライブラリ参照 -->
+  <script src="../__origin/js/vue3.min.js"></script>
+  <script src="../__origin/js/onesdk.js"></script>
+
+  <!-- 設定読込順: default -> config.js -> localStorage -->
+  <script src="./config_default.js"></script>
+  <script src="./effect-entry.js"></script>
+  <script src="./runtime/material.js"></script>
+  <script>window.VCT_BOOT = async () => { await window.VCT_EFFECT_READY; Object.assign(window.CONFIG_DEFAULT, window.VCT_EFFECT?.material ? window.VCT_MATERIAL.defaults : {}, window.VCT_EFFECT?.defaults || {}); }; </script>
+  <script>
+  (async () => {
+    await window.VCT_BOOT();
+    for (const path of ['config.js','settings/config-runtime.js','lib/vct_sdk.js','runtime/effect-host.js','runtime/layout.js','settings/settings-launcher.js','main.js']) {
+      await new Promise((resolve,reject) => { const script=document.createElement('script'); script.src='./'+path; script.onload=resolve; script.onerror=reject; document.body.append(script); });
+    }
+  })().catch(error => console.error('起動に失敗しました',error));
+  </script>
+</body>
+</html>

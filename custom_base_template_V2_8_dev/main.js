@@ -1,4 +1,4 @@
-// custom base template v2.8.0-dev
+// custom base template v2.8.1-dev
 
 const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount } = window.Vue || Vue;
 
@@ -351,7 +351,7 @@ createApp({
 
       OneSDK.ready().then(() => {
         OneSDK.connect();
-        console.log(`Custom Base Template v2.8.0-dev: Ready (SDK: ${VCT_SDK.VERSION}, Stack: ${C.STACK_DIRECTION || 'up'})`);
+        console.log(`Custom Base Template v2.8.1-dev: Ready (SDK: ${VCT_SDK.VERSION}, Stack: ${C.STACK_DIRECTION || 'up'})`);
       });
     });
 

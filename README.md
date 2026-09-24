@@ -36,6 +36,11 @@ VCreatorTools（VCT）は、わんコメ向けのカスタムテンプレート�
 
 ### Development
 
+* `custom_base_template_V3_dev/`
+
+  * 初公開版3.0.0。固定キャンバス・配置編集・単体演出モジュール・絵文字／画像素材対応の開発ベース。
+  * AI向け制作ガイドと演出契約を同梱。フォルダ名は設定保存先を維持するためdev付きのまま。
+
 ## VCT SDK V2系
 
 * `custom_base_template_V2_8_dev/`
