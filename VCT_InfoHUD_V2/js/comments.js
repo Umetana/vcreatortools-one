@@ -141,8 +141,7 @@
 
     if (eventKind === "jewel") {
       const count = Number(support.jewelCount) || 0;
-      const label = support.label || event.displayLabel || "ジュエル";
-      return count > 0 ? `${label} x${count}` : label;
+      return count > 0 ? `💎 ${count}` : "💎";
     }
 
     if (support.displayText) return support.displayText;
@@ -230,6 +229,7 @@
       label: getSupportDisplayText(comment) || "ギフト",
       userName: comment.userName || "unknown",
       message: truncate(message, Math.min(72, maxChars + 24)),
+      messageParts: activeParts,
       imageUrl,
       imageAlt: comment.support?.label || stickerPart?.alt || "",
       colorStr: comment.colorStr || ""

@@ -1,115 +1,47 @@
 # VCreatorTools
 
-VCreatorTools（VCT）は、わんコメ向けのカスタムテンプレート、開発用ライブラリ、関連ツールをまとめたコレクションです。
+わんコメ・OBS向けのテンプレートと共通ライブラリです。わんコメ公式の製品ではありません。各フォルダのREADME・仕様書・ライセンスを確認して使用してください。
 
-コメント表示テンプレート、配信支援ツール、開発ベーステンプレートなどを収録しています。
+## 現行テンプレート
 
-## 収録内容
+- `CRB_Nonogram_V2/`
+- `CRB_sweetsheaven_v2/`
+- `Ms.Bridge_V2/`
+- `Ms_Tally_v0_6/`
+- `OBS_gadget_v2_Onecomme/`
+- `VCT_InfoHUD_V2/`
+- `VCT_SB_V2/`
+- `VCT_SB_V2_UI/`
+- `VCT_Stage_FX/`
+- `VCT_clock_V2/`
+- `comment_raid_base_v2/`
+- `custom_base_template_V2_8_dev/`
+- `custom_base_template_V3_1_dev/`
+- `custom_base_template_V3_dev/`
+- `view_comment_Halloween_StageFX_V2_dev/`
+- `view_comment_Halloween_V2/`
+- `view_comment_Underbar_V2.1/`
+- `view_comment_V3/`
+- `view_comment_flash_V2.1/`
+- `view_comment_heart_V2.1/`
+- `view_comment_stars_V2.1/`
 
-### Core / SDK
+## 共通ライブラリ
 
-* `_vct_core/`
+- `_vct_core/`: VCT SDK 2系・共有IndexedDB基盤。SDK 1系の凍結版も互換用に保持します。
+- `_vct_lib/`: 共通UI部品。
+- `__shared/`: 既存の互換用資産。
 
-  * VCT Core
-  * テンプレート間で共有するデータ管理基盤
-  * ユーザー情報、支援履歴などの共有データを管理
+## 配布ZIP
 
-* `vct_sdk.js`
+`__Release/` に現行パッケージを配置します。テンプレートが参照する共通ライブラリと、わんコメが用意する `__origin` が必要です。わんコメ本体は同梱しません。
 
-  * VCT SDK V2系
-  * コメントデータの正規化ライブラリ
-  * スパチャ、メンバーシップ、メンギフなどを共通形式で扱うためのSDK
-  * V1系に混在していた新仕様とLegacy仕様を整理しLegacyを削除
-  * V1系固有の不具合や多重処理を修正
+## 旧版の保管
 
-* `vct_one_core.js` 最終版 v1.2.7
+V1・旧SDK 1系のテンプレートと対応ZIPは `__archive/legacy-20260930/` へ退避しました。現行の配布・監査済み対象から外しています。互換性確認・履歴保存用であり、安全性を保証するものではありません。削除はしていません。
 
-  * VCT SDK V1系、旧仕様
-  * コメントデータの正規化ライブラリ
-  * スパチャ、メンバーシップ、メンギフなどを共通形式で扱うためのSDK
+## 2026-09-30 同期
 
-* `Ms.Bridge_V2/`
+Raid共通描画のXSS対策、V2.8・View Comment V3の設定ファイル読込の安全化、旧エディタの除外を反映しました。開発ベースV3.1も追加しました。旧配布物を更新する場合、V2.8・View Comment V3内に残った `config_editor.html` を削除してください。
 
-  * わんコメとVCreatorToos appを連携するためのBridgeテンプレ
-  * OneSDKより購読したコメントなどをVCTSDKで正規化しVCreatorToos のローカルサーバーへ送信します
-  * テンプレ自体は購読と送信のみでコメントなどのわんコメ由来データの保存は行わない。
-
-### Development
-
-* `custom_base_template_V3_dev/`
-
-  * 初公開版3.0.0。固定キャンバス・配置編集・単体演出モジュール・絵文字／画像素材対応の開発ベース。
-  * AI向け制作ガイドと演出契約を同梱。フォルダ名は設定保存先を維持するためdev付きのまま。
-
-## VCT SDK V2系
-
-* `custom_base_template_V2_8_dev/`
-
-  * `custom_base_template_V2_7/`をベースにVCT SDK V2仕様
-
-* `comment_raid_base_V2/`
-
-## VCT SDK V1系
-
-* `CommentFX_base_V2_6/`
-* `custom_base_template_V2/`
-
-  * VCT SDK対応のカスタムテンプレート開発ベース
-  * 新規コメント表示テンプレートの作成に利用可能
-
-* `custom_base_template_V2_7_dev/`
-
-  * `custom_base_template_V2/`をベースに設定UI内蔵、リアルタイムプレビュー追加のテスト版
-
-### Templates
-
-コメントビューアや配信支援向けの各種テンプレートを収録しています。
-
-## VCT SDK V2仕様
-
-* `VCT_InfoHUD_V2/`
-* `VCT_SB_V2/`
-* `VCT_SB_V2_UI/`
-
-* `view_comment_halloween_V2`
-* `view_comment_Halloween_StageFX_V2_dev`
-
-* `view_comment_flash_v2.1/`
-* `view_comment_heart_V2.1/`
-* `view_comment_stars_V2.1/`
-* `view_comment_Underbar_V2.1/`
-
-* `view_comment_V3/`
-  * Heart,Stars,Flash,Underbar等を統合しテンプレ1つで使い分けられるようにしました。
-
-## VCT SDK V1仕様
-
-* `view_comment_flash_v2/`
-* `view_comment_heart_v2/`
-* `view_comment_stars_V2/`
-* `VCT_clock_V1/`
-* `VCT_InfoHUD_V1/`
-* `VCT_SB_V1/`
-* `VCT_SB_V1_UI/`
-* `VCT_support_thanks/`
-* `V_Telop_SYSTEM_V1/`
-* `Ms_Tally_v0_6/`
-* `Welcome_Celebration_V2/`
-
-各テンプレートの詳細は、それぞれのフォルダ内の README を参照してください。
-
-## 利用方法
-
-1. 使用したいテンプレートのフォルダを選択します。
-2. テンプレートごとの README を確認します。
-3. わんコメのカスタムテンプレートとして配置して利用します。
-
-## 開発について
-
-VCT SDK を利用することで、コメント解析処理をテンプレートごとに実装することなく、統一された形式でコメントデータを扱えます。
-
-また、VCT Core を利用することで、テンプレート間で共有するデータベースやユーザー情報を管理できます。
-
-## License
-
-各フォルダに記載されたライセンスに従って利用してください。
+画像表示の通常動作は利用者のOBS確認報告に基づきます。攻撃耐性の確認はローカルの模擬入力で行っています。OBS本体の更新も別途必要です。

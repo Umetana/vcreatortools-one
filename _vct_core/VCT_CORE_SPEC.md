@@ -9,7 +9,7 @@ v0.5.0 では、Core runtimeをVCT SDK 2.0へ移行し、SDK 1系の解析・Leg
 ## 2. バージョン系統
 
 - VCT Core `v0.5.0-dev`: runtime / ui / logger / DBレコード変換を含む Coreテンプレート全体の版
-- VCT SDK 2.0 `v2.0.3-dev`: Core runtimeが利用する `vct_sdk.js` の版
+- VCT SDK 2.0 `v2.0.4-dev`: Core runtimeが利用する `vct_sdk.js` の版
 - VCT SDK 1系 `v1.2.7-dev`: 既存テンプレート向けに残す凍結版。Core runtimeでは読み込まない
 - VCT_IDB wrapper `v0.5.0` 系: IndexedDB facade の仕様版
 

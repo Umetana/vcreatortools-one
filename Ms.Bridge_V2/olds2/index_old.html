@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ms.Bridge (OneComme Template)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body hidden>
+  <div id="container" class="container">
+    <div class="panel" :style="panelStyle">
+      <div class="hdr">
+        <div class="title">Ms.Bridge v0.2</div>
+        <div class="status">
+          <span class="pill" :data-running="bridge.isRunning">
+            <span v-if="bridge.isRunning">接続中</span>
+            <span v-else>停止</span>
+          </span>
+          <span class="pill" :data-running="bridge.enabled">
+            <span v-if="bridge.enabled">送信ON</span>
+            <span v-else>送信OFF</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="row">
+          <button class="btn" @click="start" :disabled="bridge.isRunning">Start</button>
+          <button class="btn" @click="stop" :disabled="!bridge.isRunning">Stop</button>
+          <button class="btn" @click="reset">Reset</button>
+          <label class="chk">
+            <input type="checkbox" v-model="bridge.enabled" />
+            Bridge送信
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="fld">
+            送信先URL（localhostのみ）
+            <input class="inp" type="text" v-model.trim="bridge.endpoint" placeholder="http://127.0.0.1:3000/bridge" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="fld">
+            モード（trigger判定）
+            <select class="sel" v-model="bridge.mode">
+              <option value="command">!command（例: !boom）</option>
+              <option value="regex">正規表現（一致で送信）</option>
+              <option value="all">全コメント（検証用/trigger名=all）</option>
+            </select>
+          </label>
+
+          <label class="fld" v-if="bridge.mode === 'regex'">
+            正規表現
+            <input class="inp" type="text" v-model.trim="bridge.regex" placeholder="例: ^(1|2|3)$" />
+          </label>
+
+          <label class="fld">
+            triggerクールダウン(ms)
+            <input class="inp num" type="number" min="0" step="50" v-model.number="bridge.cooldownMs" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="chk">
+            <input type="checkbox" v-model="bridge.includeText" />
+            trigger送信データに本文を含める（自己責任）
+          </label>
+          <label class="chk">
+            <input type="checkbox" v-model="bridge.includeUser" />
+            trigger送信データにユーザー情報を含める（自己責任）
+          </label>
+        </div>
+
+        <div class="row" style="border-top:1px solid rgba(0,0,0,0.08); padding-top:10px;">
+          <label class="chk">
+            <input type="checkbox" v-model="bridge.sendRaw" />
+            生データ(comment)も送信（デバッグ用/自己責任）
+          </label>
+
+          <label class="fld" v-if="bridge.sendRaw">
+            生データレベル
+            <select class="sel" v-model="bridge.rawLevel">
+              <option value="lite">lite（最小限：本文/金額/色など）</option>
+              <option value="full">full（OneSDKのcomment objectを丸ごと）</option>
+            </select>
+          </label>
+
+          <label class="fld" v-if="bridge.sendRaw">
+            commentクールダウン(ms)
+            <input class="inp num" type="number" min="0" step="50" v-model.number="bridge.rawCooldownMs" />
+          </label>
+        </div>
+
+        <div class="row note">
+          <div>送信は <b>POST JSON</b>。テンプレ自体はコメント表示しません。</div>
+          <div>既定では <b>localhostのみ</b>・<b>本文/ユーザー情報は送らない</b> です。</div>
+          <div v-if="bridge.sendRaw">生データ(comment)送信は <b>WSモニター/ルール調整用</b> を想定（配布時はOFF推奨）。</div>
+        </div>
+
+        <div class="row">
+          <div class="mini">
+            受信: {{stats.seen}} / 送信: {{stats.sent}} / 失敗: {{stats.fail}}
+          </div>
+          <div class="mini" :class="{bad: !endpointIsLocalhost}">
+            endpoint検証: <b>{{ endpointIsLocalhost ? "OK" : "NG（localhost以外）" }}</b>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="loghdr">ログ（最新が上）</div>
+          <div v-if="logs.length === 0" class="empty">まだイベントがありません</div>
+          <div v-for="(l, i) in logs" :key="i" class="logline" :class="{err: l.level==='err'}">
+            <span class="ts">{{l.ts}}</span>
+            <span class="msg">{{l.msg}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OneComme template required -->
+  <script src="../__origin/js/vue.min.js"></script>
+  <script src="../__origin/js/onesdk.js"></script>
+
+  <script src="./script.js"></script>
+</body>
+</html>

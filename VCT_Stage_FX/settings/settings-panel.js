@@ -16,11 +16,8 @@
   let panelSide = 'right';
   let panelCollapsed = false;
   let activeTab = 'placement', tabBar, placementPresets;
-  let placementEditing = false, placementOverlay, editButton, drag;
-  const endDrag = () => {
-    if (drag && placementOverlay?.hasPointerCapture(drag.id)) placementOverlay.releasePointerCapture(drag.id);
-    drag = null;
-  };
+  let placementEditing = false, placementOverlay, editButton, placementEditor;
+  const endDrag = () => placementEditor?.end();
   const syncPlacementEditor = () => {
     if (!placementOverlay) return;
     const unavailable = draft.DISPLAY_MODE === 'underbar' || (draft.DISPLAY_MODE === 'popup' && draft.POPUP_PLACEMENT !== 'anchor');
@@ -29,6 +26,8 @@
     editButton.setAttribute('aria-pressed', String(placementEditing));
     editButton.textContent = placementEditing ? 'マウス配置を終了' : 'マウスで配置調整';
     placementOverlay.hidden = !placementEditing;
+    placementEditor?.setValue({x:draft.COMMENT_X,y:draft.COMMENT_Y,width:draft.COMMENT_WIDTH,height:draft.COMMENT_HEIGHT,scale:draft.COMMENT_SCALE});
+    placementEditor?.setEnabled(placementEditing);
     if (!placementEditing) { endDrag(); return; }
     const rect = document.getElementById('stage').getBoundingClientRect();
     const scale = rect.width / 1920;
@@ -315,6 +314,7 @@
   };
 
   const emitPreview = (nextConfig) => {
+    if(root?.hidden) return;
     window.dispatchEvent(new CustomEvent('vct-settings-preview', {
       detail: { ...(nextConfig || collect()) }
     }));
@@ -445,6 +445,10 @@
     });
 
     const tools = document.createElement('div');
+    tools.append(createButton('変更を保存','is-primary',()=>{
+      try { runtime.commitLocal(collect()); refreshSaved(); setStatus('変更をローカルへ保存・適用しました。再読み込みはしていません。'); }
+      catch(error){setStatus('ローカル設定を保存できませんでした。',true);}
+    }));
     tools.className = 'vct-settings-tools';
     const loadTools = document.createElement('details');
     loadTools.className = 'vct-settings-load-tools';
@@ -560,29 +564,19 @@
       const button = createButton(label, 'is-secondary', () => { draft = collect(); activeTab = id; updateVisibility(); controls.scrollTop = 0; colorPicker?.close?.(); });
       button.dataset.tab = id; button.setAttribute('role', 'tab'); button.setAttribute('aria-controls', controls.id); tabBar.append(button);
     }
-    panel.append(header, tabBar, tools, colorPickerMount, controls, statusText, footer);
+    panel.append(header, tabBar, tools);
+    window.VCT_TEMPLATE_LINK?.attach(tools);
+    panel.append(colorPickerMount, controls, statusText, footer);
     placementOverlay = document.createElement('div');
     placementOverlay.className = 'vct-placement-editor';
     placementOverlay.hidden = true;
     placementOverlay.textContent = 'コメント領域：ドラッグで移動／ホイールで倍率';
-    placementOverlay.addEventListener('pointerdown', event => {
-      if (event.button !== 0 || !placementEditing) return;
-      event.preventDefault();
-      const scale = document.getElementById('stage').getBoundingClientRect().width / 1920;
-      drag = { id:event.pointerId, x:event.clientX, y:event.clientY, left:Number(draft.COMMENT_X), top:Number(draft.COMMENT_Y), scale };
-      placementOverlay.setPointerCapture(event.pointerId);
+    const keys={x:'COMMENT_X',y:'COMMENT_Y',width:'COMMENT_WIDTH',height:'COMMENT_HEIGHT',scale:'COMMENT_SCALE'};
+    placementEditor=window.VCTPlacementEditor.create({element:placementOverlay,getCanvasRect:()=>document.getElementById('stage').getBoundingClientRect(),canvasWidth:1920,canvasHeight:1080,
+      limits:Object.fromEntries(Object.entries(keys).map(([name,key])=>{const field=schema.comments.fields[key];return [name,[field.min,field.max,runtime.baseline[key]]];})),
+      value:{x:draft.COMMENT_X,y:draft.COMMENT_Y,width:draft.COMMENT_WIDTH,height:draft.COMMENT_HEIGHT,scale:draft.COMMENT_SCALE},
+      onChange:(value,changed)=>{for(const name of changed)setPlacementValue(keys[name],value[name]);}
     });
-    placementOverlay.addEventListener('pointermove', event => {
-      if (!drag || drag.id !== event.pointerId) return;
-      setPlacementValue('COMMENT_X', Math.round(drag.left + (event.clientX-drag.x)/drag.scale));
-      setPlacementValue('COMMENT_Y', Math.round(drag.top + (event.clientY-drag.y)/drag.scale));
-    });
-    for (const type of ['pointerup','pointercancel','lostpointercapture']) placementOverlay.addEventListener(type, endDrag);
-    placementOverlay.addEventListener('wheel', event => {
-      if (!placementEditing) return;
-      event.preventDefault();
-      if (event.deltaY) setPlacementValue('COMMENT_SCALE', Number(draft.COMMENT_SCALE) - Math.sign(event.deltaY)*.05);
-    }, {passive:false});
     window.addEventListener('resize', () => { endDrag(); syncPlacementEditor(); });
     window.addEventListener('blur', endDrag);
     window.addEventListener('pagehide', () => { placementEditing = false; syncPlacementEditor(); });
@@ -607,6 +601,7 @@
 
   function close() {
     if (!root) return;
+    root.hidden = true;
     window.dispatchEvent(new CustomEvent('vct-settings-reset-preview'));
     draft = { ...runtime.effective };
     root.hidden = true;
@@ -615,5 +610,7 @@
     document.getElementById('vct-settings-launcher')?.blur();
   }
 
-  window.VCT_SETTINGS_PANEL = Object.freeze({ open, close });
+  function isDirty() { return !!root && !root.hidden && JSON.stringify(normalizedConfig(collect())) !== JSON.stringify(normalizedConfig(runtime.effective)); }
+  function refreshSaved() { if(root){draft={...runtime.effective};render();updateSource();} }
+  window.VCT_SETTINGS_PANEL = Object.freeze({ open, close, isDirty, refreshSaved });
 })();

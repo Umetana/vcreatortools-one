@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Stream Overlay Gadget</title>
+    <!-- 設定ファイルを読み込む -->
+    <script src="settings.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+        :root {
+            --bg-accent: rgba(0, 0, 0, 0.6);
+            --text-color: #ffffff;
+            --highlight: #00ffcc;
+            --font-main: 'Inter', 'Noto Sans JP', sans-serif;
+            --accent-gradient: linear-gradient(90deg, #00ffcc, #0099ff);
+            --color-x: #000000;
+            --color-youtube: #FF0000;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            background-color: transparent;
+            font-family: var(--font-main);
+            color: var(--text-color);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: fit-content;
+        }
+
+        .clock-card {
+            background: var(--bg-accent);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border-left: 4px solid var(--highlight);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .time-section { display: flex; flex-direction: column; }
+        #time { font-size: 2.5rem; font-weight: 700; line-height: 1.1; margin-bottom: 5px; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
+        #date { font-size: 0.9rem; opacity: 0.8; letter-spacing: 0.05em; }
+
+        .sub-section { 
+            padding-left: 20px; 
+            border-left: 1px solid rgba(255, 255, 255, 0.2); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            min-width: 100px;
+        }
+        
+        /* ラベルと数値の基本スタイル */
+        .sub-label { 
+            font-size: 0.65rem; 
+            font-weight: 700; 
+            color: var(--highlight); 
+            text-transform: uppercase; 
+            margin-bottom: 2px;
+            transition: font-size 0.3s ease;
+        }
+        #sub-value { 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+            font-variant-numeric: tabular-nums; 
+            opacity: 0.9;
+            transition: font-size 0.3s ease;
+        }
+
+        .info-card {
+            background: var(--bg-accent);
+            padding: 2px 15px 2px 5px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            backdrop-filter: blur(8px);
+            animation: slideIn 1s ease-out;
+            width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .label-wrapper {
+            background: var(--accent-gradient);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .content-area { flex-grow: 1; overflow: hidden; position: relative; height: 1.5em; display: flex; align-items: center; }
+        #ticker-text { position: absolute; white-space: nowrap; display: inline-block; will-change: transform; }
+
+        @keyframes scrollText {
+            0%, 10% { transform: translateX(0); }
+            90%, 100% { transform: translateX(var(--scroll-distance)); }
+        }
+
+        .social-card { display: flex; gap: 10px; animation: slideIn 1.2s ease-out; }
+        .social-item {
+            background: var(--bg-accent);
+            padding: 5px 15px 5px 5px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .social-icon {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.7rem; color: white;
+        }
+
+        @keyframes slideIn { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .pulse::after { content: ''; position: absolute; left: -4px; top: 0; height: 100%; width: 4px; background: var(--highlight); filter: blur(4px); animation: glow 2s infinite alternate; }
+        @keyframes glow { from { opacity: 0.3; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="clock-card pulse">
+            <div class="time-section">
+                <div id="time">00:00:00</div>
+                <div id="date">YYYY/MM/DD (SUN)</div>
+            </div>
+            <!-- サブセクション -->
+            <div class="sub-section" id="sub-section">
+                <div class="sub-label" id="sub-label">Uptime</div>
+                <div id="sub-value">00:00:00</div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="label-wrapper" id="label-box"><span id="ticker-label">INFO</span></div>
+            <div class="content-area" id="ticker-container"><span id="ticker-text">Loading...</span></div>
+        </div>
+
+        <div class="social-card">
+            <div class="social-item">
+                <div class="social-icon" style="background: var(--color-x);">X</div>
+                <span id="sns-x">@YourID_X</span>
+            </div>
+            <div class="social-item">
+                <div class="social-icon" style="background: var(--color-youtube);">YT</div>
+                <span id="sns-yt">ChannelName</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 設定の読み込み ---
+        const useExternal = window.useExternalSettings === true;
+        const sns = (useExternal && window.snsConfig) ? window.snsConfig : { x_id: "@Default", yt_name: "Channel" };
+        const config = (useExternal && window.overlayConfig) ? window.overlayConfig : [{ label: "Welcome", text: "Ready to Stream" }];
+        const displayMode = (useExternal && window.displayMode) ? window.displayMode : "uptime";
+        const syncCounterId = (useExternal && window.syncCounterId) ? window.syncCounterId : "counter1";
+
+        // SNS反映
+        document.getElementById('sns-x').textContent = sns.x_id;
+        document.getElementById('sns-yt').textContent = sns.yt_name;
+
+        const subSectionEl = document.getElementById('sub-section');
+        const subLabelEl = document.getElementById('sub-label');
+        const subValueEl = document.getElementById('sub-value');
+
+        // 表示初期化
+        if (displayMode === "none") {
+            subSectionEl.style.display = "none";
+        } else if (displayMode === "custom") {
+            subLabelEl.textContent = window.customLabel || "INFO";
+            subValueEl.textContent = window.customText || "";
+        } else if (displayMode === "sync") {
+            subLabelEl.textContent = "SYNCING...";
+            subValueEl.textContent = "---";
+        }
+
+        // --- BroadcastChannel 同期ロジック (GP MULTI COUNTER 連携) ---
+        if (displayMode === "sync") {
+            const channel = new BroadcastChannel('obs_counter_sync');
+            channel.onmessage = (e) => {
+                if (e.data.type === 'update' && e.data.payload) {
+                    const myData = e.data.payload.find(c => c.id === syncCounterId);
+                    if (myData) {
+                        // データ反映
+                        subLabelEl.textContent = myData.label || "COUNTER";
+                        
+                        // 数値文字列の生成
+                        let valStr = myData.count.toLocaleString();
+                        if (myData.showGoal && myData.goalCount) {
+                            valStr += ` / ${myData.goalCount.toLocaleString()}`;
+                        }
+                        if (myData.unit) {
+                            valStr += ` ${myData.unit}`;
+                        }
+                        subValueEl.textContent = valStr;
+
+                        // --- デザイン設定の反映（文字サイズ・装飾のみ） ---
+                        // カウンター側が px 指定などで送ってくることを想定し、そのまま適用
+                        if (myData.labelSize) subLabelEl.style.fontSize = myData.labelSize;
+                        if (myData.countSize) subValueEl.style.fontSize = myData.countSize;
+                        
+                        // 太字設定
+                        subLabelEl.style.fontWeight = myData.isBold ? "700" : "400";
+                        subValueEl.style.fontWeight = myData.isBold ? "700" : "400";
+
+                        // 文字影設定
+                        const shadow = myData.isShadow ? "2px 2px 4px rgba(0,0,0,0.5)" : "none";
+                        subLabelEl.style.textShadow = shadow;
+                        subValueEl.style.textShadow = shadow;
+                    }
+                }
+            };
+        }
+
+        const startTime = Date.now();
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString('ja-JP', { hour12: false });
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            document.getElementById('date').textContent = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+
+            if (displayMode === "uptime") {
+                const diff = Math.floor((Date.now() - startTime) / 1000);
+                const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                subValueEl.textContent = `${h}:${m}:${s}`;
+            }
+        }
+
+        // ティッカー制御
+        let configIndex = 0;
+        let tickerTimeout;
+        function rotateInfo() {
+            const labelEl = document.getElementById('ticker-label');
+            const labelBox = document.getElementById('label-box');
+            const textEl = document.getElementById('ticker-text');
+            const containerEl = document.getElementById('ticker-container');
+            
+            textEl.style.animation = 'none';
+            textEl.style.opacity = 0;
+            textEl.style.transform = "translateY(10px)";
+            clearTimeout(tickerTimeout);
+
+            setTimeout(() => {
+                const item = config[configIndex];
+                if (!item) return;
+                
+                labelEl.textContent = item.label;
+                textEl.textContent = item.text;
+                labelBox.style.background = item.color || "var(--accent-gradient)";
+                labelBox.style.color = (item.label.match(/X|Update|Notice|Announce|Notice/i)) ? "white" : "black";
+                
+                textEl.style.opacity = 1;
+                textEl.style.transform = "translateY(0)";
+
+                const textWidth = textEl.offsetWidth;
+                const containerWidth = containerEl.offsetWidth;
+                let nextInterval = 7000;
+
+                if (textWidth > containerWidth) {
+                    const scrollDistance = containerWidth - textWidth - 10;
+                    textEl.style.setProperty('--scroll-distance', `${scrollDistance}px`);
+                    const scrollDuration = Math.abs(scrollDistance) / 40;
+                    const totalAnim = scrollDuration + 4;
+                    textEl.style.animation = `scrollText ${totalAnim}s linear infinite`;
+                    nextInterval = (totalAnim * 1000) + 2000;
+                }
+                
+                configIndex = (configIndex + 1) % config.length;
+                tickerTimeout = setTimeout(rotateInfo, nextInterval);
+            }, 500);
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        rotateInfo();
+    </script>
+</body>
+</html>

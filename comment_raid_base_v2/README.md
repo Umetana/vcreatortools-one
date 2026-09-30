@@ -117,3 +117,10 @@ window.CONFIG = {
 - v1.1.0 (2026-03-12)
   - 動的 UI/CSS/Script ロード（manifest 方式）を正式化
   - plugin author 向けに責務分離を強化
+
+
+## セキュリティ対応（2026-09-30）
+
+コメント本文・名前・イベントの `log` をHTMLとして再解釈しないよう、ログと簡易コメント欄の出力をエスケープします。`event.log` はプレーンテキストとして扱い、HTML装飾は解釈しません。絵文字画像はHTTP(S)のURLのみを許可し、属性値もエスケープします。未許可URLは代替文字を表示します。非表示のコメント欄も同じ対策を適用します。
+
+回帰検証: `node comment_raid_base_v2/tests/security.cjs`（開発用Playwright・Chromeが必要）。実わんコメ・OBSでの検証は別途必要です。

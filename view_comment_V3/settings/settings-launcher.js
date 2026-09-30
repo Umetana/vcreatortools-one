@@ -88,7 +88,8 @@
         loadStyle('./settings/settings-panel.css'),
         loadStyle('./settings/inline-color-picker/picker.css'),
         loadScript('./settings/inline-color-picker/picker.js'),
-        loadScript('./settings/settings-schema.js')
+        loadScript('./settings/settings-schema.js'),
+        loadScript('./settings/config-parser.js')
       ]);
       await loadScript('./settings/settings-panel.js');
       window.VCT_SETTINGS_PANEL?.open();

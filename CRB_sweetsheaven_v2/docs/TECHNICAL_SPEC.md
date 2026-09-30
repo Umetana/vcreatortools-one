@@ -2,7 +2,7 @@
 
 ## 概要
 
-`CRB_sweetsheaven_v1` は、コメントをスイーツ演出へ変換し、累積カロリーを可視化する CommentRaid 系テンプレートです。
+`CRB_sweetsheaven_v2` は、コメントをスイーツ演出へ変換し、累積カロリーを可視化する CommentRaid 系テンプレートです。
 
 責務は大きく次の3層に分かれます。
 
@@ -18,10 +18,10 @@
 `index.html` では以下の順で主要スクリプトを読み込みます。
 
 1. `./data/config.js`
-2. `../comment_raid_base_v1/js/core/engine.js`
-3. `../comment_raid_base_v1/__shared/js/vct_one_core.js`
-4. `../comment_raid_base_v1/js/core/fx.js`
-5. `../comment_raid_base_v1/js/core/script.js`
+2. `../comment_raid_base_v2/js/core/engine.js`
+3. `../_vct_core/js/vct_sdk.js`
+4. `../comment_raid_base_v2/js/core/fx.js`
+5. `../comment_raid_base_v2/js/core/script.js`
 
 `plugins/sweets_logic.js` は `plugin_manifest.js` 経由で関連ファイルを読み込みます。
 
@@ -118,8 +118,8 @@
 
 ### ギフト補正
 
-- `commentData.hasGift` を利用
-- 価格は `ENGINE.extractGiftPrice(commentData)` を優先し、無ければ `price` 系フィールドから取得
+- `commentData.event.isSupport` を利用し、メンギフ受取はギフト補正対象外
+- 価格は `ENGINE.extractGiftPrice(commentData)` または `commentData.monetization.money.amount` を使用
 - 金額帯に応じて `normal` `small` `medium` `large` `premium` を決定
 - 各 tier は `GIFT_TIERS` の `multiplierMin` `multiplierMax` `spawnMin` `spawnMax` を使用
 

@@ -182,7 +182,7 @@ badge
 kind別の基本表示：
 superchat / supersticker は monetization.money.displayText を優先する。
 メンギフ送信は event.kind の membership_gift と membership.giftCount から メンギフ xN を表示する。
-jewel は monetization.gift.label と monetization.jewels.count を表示する。
+jewel は monetization.jewels.count を参照し、支援バッジへ 💎 N 形式で表示する。ギフト名は本文側の通知表示に任せる。
 giftreceived は ギフト受取 と表示する。
 milestonechat は membership.primary があればそれを優先し、無ければ メンバー と表示する。
 例：メンバー歴 8か月
@@ -296,6 +296,7 @@ GIFT_CARD_SHOW_MESSAGE_WITH_IMAGE
 初期値では、種別ラベル、ユーザー名、本文、画像を表示対象とする。
 ただし画像がある場合は画像を優先し、本文は表示しない。
 GIFT_CARD_SHOW_MESSAGE_WITH_IMAGE を true にすると、画像ありのギフトカードでも本文を併記する。
+本文中の通常画像絵文字は message.parts の位置にインライン表示する。isSticker が true の画像は本文内へ重複表示せず、従来どおりカード画像として扱う。
 
 ギフトカード表示デザイン：
 背景は取得できたギフトカラーを濃いめに反映する。

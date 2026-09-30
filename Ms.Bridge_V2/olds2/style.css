@@ -1,0 +1,74 @@
+:root{
+  color-scheme: dark light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+}
+body{ margin:0; }
+.container{
+  width:100vw; height:100vh;
+  display:flex; align-items:flex-start; justify-content:flex-start;
+  padding:12px; box-sizing:border-box;
+}
+.panel{
+  width:420px;
+  max-width:calc(100vw - 24px);
+  border-radius:14px;
+  padding:12px;
+  box-sizing:border-box;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.hdr{ display:flex; justify-content:space-between; align-items:flex-end; gap:10px; }
+.title{ font-weight:900; font-size:16px; letter-spacing:0.2px; }
+.status{ display:flex; gap:8px; align-items:center; font-size:12px; opacity:0.95; }
+.pill{
+  display:inline-flex;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid rgba(0,0,0,0.12);
+  background:rgba(0,0,0,0.06);
+  font-weight:900;
+}
+.grid{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+.row{ display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; }
+.btn{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,0.12);
+  background:rgba(0,0,0,0.06);
+  color:inherit;
+  cursor:pointer;
+}
+.btn:disabled{ opacity:0.45; cursor:default; }
+.chk{ display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.98; }
+.fld{ display:flex; flex-direction:column; gap:6px; font-size:12px; opacity:0.98; flex:1 1 240px; }
+.inp,.sel{
+  width:100%;
+  padding:6px 8px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,0.12);
+  background:rgba(0,0,0,0.04);
+  color:inherit;
+  box-sizing:border-box;
+}
+.inp.num{ max-width:160px; }
+.note{ font-size:12px; opacity:0.9; line-height:1.4; }
+.mini{ font-size:12px; opacity:0.9; }
+.mini.bad b{ color:#c72c2c; }
+.log{
+  margin-top:4px;
+  border-radius:12px;
+  padding:10px;
+  background:rgba(0,0,0,0.04);
+}
+.loghdr{ font-weight:900; font-size:12px; opacity:0.9; margin-bottom:6px; }
+.empty{ font-size:12px; opacity:0.75; }
+.logline{
+  display:flex;
+  gap:10px;
+  font-size:12px;
+  padding:4px 0;
+  border-top:1px solid rgba(0,0,0,0.06);
+}
+.logline:first-of-type{ border-top:none; }
+.ts{ opacity:0.75; width:84px; flex:0 0 auto; }
+.msg{ flex:1 1 auto; word-break:break-word; }

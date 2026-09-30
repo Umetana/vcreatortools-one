@@ -766,12 +766,18 @@ textarea {
 }
 
 .gift-card__message {
-  display: -webkit-box;
   max-width: 100%;
+  max-height: 2.5em;
   overflow: hidden;
   font-size: calc(var(--info-font-size) * 0.66);
   font-weight: 800;
   line-height: 1.25;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+}
+
+.gift-card__emoji {
+  width: auto;
+  height: 1.15em;
+  margin: 0 0.08em;
+  object-fit: contain;
+  vertical-align: -0.18em;
 }

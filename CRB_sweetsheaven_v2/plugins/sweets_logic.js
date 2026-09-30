@@ -200,12 +200,24 @@
     return withinCycle / cycle;
   }
 
+  function getCommentText(commentData) {
+    return String(commentData?.message?.text || "");
+  }
+
+  function getDisplayName(commentData) {
+    return commentData?.user?.displayName || commentData?.user?.name || "Anonymous";
+  }
+
+  function isSupportComment(commentData) {
+    return !!(commentData?.event?.isSupport && !commentData?.membership?.isGiftReceiver);
+  }
+
   function resolveGiftAmount(commentData) {
-    if (!commentData?.hasGift) return 0;
+    if (!isSupportComment(commentData)) return 0;
     if (typeof window.ENGINE?.extractGiftPrice === "function") {
       return Number(window.ENGINE.extractGiftPrice(commentData) || 0);
     }
-    return Number(commentData?.price || commentData?.raw?.price || 0);
+    return Number(commentData?.monetization?.money?.amount || 0);
   }
 
   function resolveGiftTier(giftAmount) {
@@ -230,7 +242,7 @@
 
   function getSpawnProfile(commentData, cfg) {
     const defaultTiers = cfg.GIFT_TIERS || {};
-    if (!commentData?.hasGift) {
+    if (!isSupportComment(commentData)) {
       return { tier: "normal", ...(defaultTiers.normal || { multiplierMin: 1, multiplierMax: 1, spawnMin: 1, spawnMax: 1 }) };
     }
 
@@ -341,11 +353,13 @@
       if (ctx.isBossAction) return;
 
       const cfg = getConfig();
-      const sweet = weightedSweetPick(ctx.commentData?.text);
+      const commentText = getCommentText(ctx.commentData);
+      const userName = getDisplayName(ctx.commentData);
+      const sweet = weightedSweetPick(commentText);
       const spawnProfile = getSpawnProfile(ctx.commentData, cfg);
       const multiplier = pickRandomRange(spawnProfile.multiplierMin, spawnProfile.multiplierMax);
       const spawnCount = pickIntRange(spawnProfile.spawnMin, spawnProfile.spawnMax);
-      const kcal = calculateKcalPerSweet(sweet, ctx.commentData?.text, multiplier);
+      const kcal = calculateKcalPerSweet(sweet, commentText, multiplier);
       const totalGain = kcal * spawnCount;
 
       const previousTotal = Number(state.totalCalories || 0);
@@ -362,13 +376,13 @@
       const event = {
         type: "sweets",
         motion: "sweets_fall",
-        userName: ctx.commentData?.user || "Anonymous",
+        userName,
         sweetId: sweet.id,
         sweetName: sweet.name,
         emoji: sweet.emoji,
         imageSrc: resolveSweetImageSrc(sweet),
         kcal,
-        isGift: !!ctx.commentData?.hasGift,
+        isGift: isSupportComment(ctx.commentData),
         giftAmount: resolveGiftAmount(ctx.commentData),
         spawnCount,
         totalGain
@@ -378,7 +392,7 @@
         const giftSuffix = event.isGift && cfg.GIFT_LOG_SUFFIX
           ? ` ${cfg.GIFT_LOG_SUFFIX}`
           : "";
-        event.log = `${ctx.commentData?.user || "Anonymous"} のコメントが ${sweet.name} に変化！${giftSuffix}`;
+        event.log = `${userName} のコメントが ${sweet.name} に変化！${giftSuffix}`;
       }
 
       ctx.events.push(event);

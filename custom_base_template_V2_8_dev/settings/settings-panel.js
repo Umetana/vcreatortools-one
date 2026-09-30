@@ -173,12 +173,7 @@
     setStatus(message);
   };
 
-  const parseConfigFile = (text) => {
-    const sandbox = {};
-    const result = Function('window', `${text}\n; return window.CONFIG || window.CONFIG_FILE;`)(sandbox);
-    if (!result || typeof result !== 'object') throw new Error('window.CONFIG が見つかりません。');
-    return result;
-  };
+  const parseConfigFile = (text) => window.VCT_PARSE_CONFIG(text);
 
   const createButton = (label, className, handler) => {
     const button = document.createElement('button');

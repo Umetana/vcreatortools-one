@@ -104,6 +104,18 @@ function isSupportEvent(commentData) {
   return !!(commentData?.event?.isSupport && !commentData?.membership?.isGiftReceiver);
 }
 
+// 外部入力はHTMLとして再解釈しない。画像はHTTP(S)だけを許可する。
+function escapeRaidHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function raidImageHtml(url, alt = '') {
+  try {
+    const parsed = new URL(String(url));
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) return escapeRaidHtml(alt);
+    return '<img src="' + escapeRaidHtml(parsed.href) + '" alt="' + escapeRaidHtml(alt) + '">';
+  } catch { return escapeRaidHtml(alt); }
+}
+
 // ===== 1.6 RaidログUI（DOM） =====
 const RaidLog = (() => {
   const getElements = () => ({
@@ -149,13 +161,14 @@ const RaidLog = (() => {
     }
 
     if (sep) {
-      const style = color ? ` style="color: ${color}"` : "";
-      div.innerHTML = `<span class="name">${name}</span>${sep}<span class="body"${style}>${body}</span>`;
+      const style = "";
+      div.innerHTML = `<span class="name">${name}</span>${sep}<span class="body">${body}</span>`;
     } else {
       div.innerHTML = html;
       if (color) div.style.color = color;
     }
 
+    if (color && sep) div.querySelector(".body").style.color = color;
     list.appendChild(div);
     lines.push(div);
 
@@ -196,26 +209,26 @@ const RaidLog = (() => {
 
   function getRichContent(commentData, cfg, showEmoji) {
     const text = getCommentText(commentData);
-    if (!showEmoji) return ellipsis(text, cfg.MAX_LOG_CHARS ?? 32);
+    if (!showEmoji) return escapeRaidHtml(ellipsis(text, cfg.MAX_LOG_CHARS ?? 32));
 
     let html = "";
     const parts = getCommentParts(commentData);
     const imageUrls = getCommentImageUrls(commentData);
     if (parts.length > 0) {
       html = parts.map(p => {
-        if (p.type === 'text') return p.content;
-        if (p.type === 'emoji') return `<img src="${p.url}" alt="${p.alt}">`;
+        if (p.type === 'text') return escapeRaidHtml(p.content);
+        if (p.type === 'emoji') return raidImageHtml(p.url, p.alt);
         return "";
       }).join("");
     } else if (imageUrls.length > 0) {
-      html = text + imageUrls.map(url => `<img src="${url}" alt="">`).join("");
+      html = escapeRaidHtml(text) + imageUrls.map(url => raidImageHtml(url)).join("");
     } else {
-      html = ellipsis(text, cfg.MAX_LOG_CHARS ?? 32);
+      html = escapeRaidHtml(ellipsis(text, cfg.MAX_LOG_CHARS ?? 32));
     }
 
-    const plainLength = html.replace(/<[^>]*>/g, '').length;
+    const plainLength = text.length;
     if (plainLength > (cfg.MAX_LOG_CHARS ?? 32)) {
-      return ellipsis(text, cfg.MAX_LOG_CHARS ?? 32);
+      return escapeRaidHtml(ellipsis(text, cfg.MAX_LOG_CHARS ?? 32));
     }
     return html;
   }
@@ -231,10 +244,10 @@ const RaidLog = (() => {
       const logEvent = events?.find(e => e.log);
       
       if (logEvent) {
-        contentHtml = logEvent.log;
+        contentHtml = escapeRaidHtml(logEvent.log);
       } else {
         contentHtml = getRichContent(commentData, cfg, showEmoji);
-        contentHtml = `${name}：${contentHtml}`;
+        contentHtml = `${escapeRaidHtml(name)}：${contentHtml}`;
       }
 
       const useColor = isSupportEvent(commentData) ? cfg.LOG_USE_GIFT_COLOR : cfg.LOG_USE_USER_COLOR;
@@ -282,7 +295,7 @@ function pushToHtml(data) {
   div.className = 'comment';
   const userName = getCommentUserName(data);
   div.style.setProperty('--user-color', getCommentColorString(data));
-  div.innerHTML = `${userName ? `<div class="comment-name">${userName}</div>` : ''}<div class="comment-text">${getCommentText(data)}</div>`;
+  div.innerHTML = `${userName ? `<div class="comment-name">${escapeRaidHtml(userName)}</div>` : ''}<div class="comment-text">${escapeRaidHtml(getCommentText(data))}</div>`;
   container.prepend(div);
   while (container.children.length > 20) container.removeChild(container.lastChild);
 }

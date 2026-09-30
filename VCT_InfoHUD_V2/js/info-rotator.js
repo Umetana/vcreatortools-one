@@ -61,6 +61,34 @@
       parent.appendChild(frame);
     }
 
+    function appendCardMessage(parent, card) {
+      const line = document.createElement("div");
+      line.className = "gift-card__message";
+      const parts = Array.isArray(card?.messageParts) ? card.messageParts : [];
+
+      parts.forEach((part) => {
+        if (part?.type === "text" && part.content) {
+          const text = document.createElement("span");
+          text.textContent = String(part.content).replace(/\s+/g, " ");
+          line.appendChild(text);
+          return;
+        }
+
+        if (part?.type !== "emoji" || part.isSticker || !part.url) return;
+        const img = document.createElement("img");
+        img.className = "gift-card__emoji";
+        img.src = part.url;
+        img.alt = part.alt || "";
+        img.title = part.alt || "";
+        line.appendChild(img);
+      });
+
+      if (!line.childNodes.length && card?.message) {
+        line.textContent = card.message;
+      }
+      if (line.childNodes.length) parent.appendChild(line);
+    }
+
     function start(config) {
       stop();
       const activeConfig = config || {};
@@ -101,7 +129,7 @@
       if (showUser) appendCardLine(wrap, "gift-card__name", card.userName || "unknown");
       if (hasImage) appendCardImage(wrap, card);
       if (showMessage && (!hasImage || showMessageWithImage)) {
-        appendCardLine(wrap, "gift-card__message", card.message || "");
+        appendCardMessage(wrap, card);
       }
 
       element.appendChild(wrap);

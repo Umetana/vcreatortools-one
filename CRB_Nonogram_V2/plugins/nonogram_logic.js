@@ -420,10 +420,10 @@
   // ===== コメント投票と配信中ショートカット =====
   function vote(s, c, now) {
     if (s.phase !== PHASE.POLLING || now >= s.pollEndsAt) return false;
-    const cmd = parseCommand(c?.text);
+    const cmd = parseCommand(c?.message?.text);
     if (!cmd || !unknown(s, cmd)) return false;
-    const sid = c?.structured?.service?.id,
-      uid = c?.structured?.user?.id;
+    const sid = c?.service?.id,
+      uid = c?.user?.id;
     if (
       sid === undefined ||
       sid === null ||

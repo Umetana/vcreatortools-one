@@ -1,12 +1,16 @@
 /**
- * VCT SDK 2.0 v2.0.3-dev
+ * VCT SDK 2.0 v2.0.4-dev
  * OneSDKコメントを単一APIで正規化する。
  */
 (function (global) {
     'use strict';
 
-    const VERSION = '2.0.3-dev';
+    const VERSION = '2.0.4-dev';
     const DEFAULT_COLOR = Object.freeze({ r: 255, g: 255, b: 255 });
+    const FALLBACK_GIFT_TYPES = new Set([
+        'superchat', 'supersticker', 'jewel', 'sponsorgift',
+        'giftreceived', 'subscribe', 'milestonechat'
+    ]);
 
     function stringValue(value) {
         return value == null ? '' : String(value);
@@ -19,6 +23,15 @@
     function firstNonEmpty(values) {
         const found = values.find((value) => stringValue(value).trim());
         return found == null ? '' : stringValue(found);
+    }
+
+    function resolveGiftType(raw, data) {
+        const explicitType = stringValue(data?.giftType).trim().toLowerCase();
+        // 通常種別の明示を優先し、未知のギフト種別は互換性のため保持する。
+        if (explicitType) return explicitType === 'normal' || explicitType === 'comment' ? '' : explicitType;
+        // 外側のtypeは通知種別にも使われるため、既知のギフト種別だけ補完する。
+        const rawType = stringValue(raw?.type).trim().toLowerCase();
+        return FALLBACK_GIFT_TYPES.has(rawType) ? rawType : '';
     }
 
     function parseHtml(html) {
@@ -206,7 +219,7 @@
         const messageContent = parseHtml(messageHtml);
         const translatedHtml = stringValue(data?.translated).trim();
         const translatedContent = translatedHtml ? parseHtml(translatedHtml) : { text: '', parts: [], imageUrls: [] };
-        const giftType = stringValue(data?.giftType || safeRaw?.type).trim().toLowerCase();
+        const giftType = resolveGiftType(safeRaw, data);
         const firstGiftImage = messageContent.parts.find((part) => part.type === 'emoji' && part.isSticker) || {};
         const giftLabel = firstNonEmpty([
             giftType === 'jewel' ? jewelLabel(messageContent.text) : '',

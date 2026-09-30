@@ -5,7 +5,7 @@
 ## 現在の版
 
 - VCT Core: `v0.5.0-dev`
-- VCT SDK 2.0 (`vct_sdk.js`): `v2.0.3-dev`
+- VCT SDK 2.0 (`vct_sdk.js`): `v2.0.4-dev`
 - VCT_IDB wrapper 仕様: `v0.5.0` 系由来
 
 `VCT_IDB` の仕様版と VCT Core 本体版は別系統です。

@@ -1,4 +1,4 @@
-# VCT SDK 2.0 確定仕様 v2.0.3-dev
+# VCT SDK 2.0 確定仕様 v2.0.4-dev
 
 ## 1. 位置づけ
 
@@ -14,7 +14,7 @@
 ```js
 const normalized = VCT_SDK.normalize(rawComment);
 const withRaw = VCT_SDK.normalize(rawComment, { includeRaw: true });
-console.log(VCT_SDK.VERSION); // 2.0.3-dev
+console.log(VCT_SDK.VERSION); // 2.0.4-dev
 ```
 
 公開メンバーは次の2つだけです。
@@ -111,6 +111,14 @@ SDK 1系の `parse()`、`parseStructured()`、`parseCore()`、Legacy API、`lega
 - `speechText` は読み上げ用の加工済み文字列であるため、表示本文やギフト名の補完には使用しない。
 - ギフト画像には `gift-image` または `gift-sticker` クラスを持つ画像だけを採用し、通常コメントやスパチャ本文の絵文字画像と区別する。
 
+### ギフト種別・有無
+
+- 通常コメントがギフト扱いになる不具合を修正。`data.giftType` は前後の空白と大文字小文字を正規化し、`normal` / `comment` は空のギフト種別として扱う。
+- `data.giftType` が空の場合のみ外側の `raw.type` で補完する。補完対象は既存の分類で扱う `superchat` / `supersticker` / `jewel` / `sponsorgift` / `giftreceived` / `subscribe` / `milestonechat` に限定する。
+- 明示された未知の `data.giftType` は互換性のため保持する。
+- `monetization.present` は `hasGift`、上記で解決した空でないギフト種別、金額またはジュエルの取得可否から判定する。通常種別だけでは `true` にしないが、`hasGift: true` や有効な金額がある場合は支援情報を保持する。
+- 回帰確認: `node _vct_core/js/tests/vct_sdk_membership.test.js`。通常種別、外側の通知種別、既知・未知ギフトと既存のメンバーシップ・金額・ジュエル分類を確認する。
+
 ### 金額・数量
 
 - 法定通貨または通貨建て金額は `monetization.money` に保持する。
@@ -154,7 +162,7 @@ SDK 1系の `parse()`、`parseStructured()`、`parseCore()`、Legacy API、`lega
 
 ### 第1対象
 
-1. `_debug/comment_monitor.html`（SDK v2.0.3-dev対応済み）
+1. `_debug/comment_monitor.html`（SDK v2.0.4-dev対応済み）
    - SDK 2.0を読み込み、1コメントにつき `normalize()` を1回だけ実行する。
    - 通常表示ではRAWなし、RAWタブ等で必要な場合だけ受信した原本を直接表示する。
    - SDK 1系との比較が必要な検証期間だけ、明示的な比較モードとして分離する。

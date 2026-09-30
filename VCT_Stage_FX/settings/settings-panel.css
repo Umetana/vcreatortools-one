@@ -364,3 +364,6 @@
 /* 設定パネルより背面、背景ボタンより前面でコメント領域だけを操作する。 */
 .vct-placement-editor { pointer-events: auto; position: fixed; border: 2px dashed #7dd3fc; background: #38bdf820; color: #fff; padding: 8px; font: 14px/1.5 sans-serif; text-shadow: 0 1px 3px #000; cursor: move; touch-action: none; user-select: none; overflow: hidden; }
 .vct-placement-editor[hidden] { display: none; }
+
+/* 接続設定はスクロール可能な操作群へ収め、小さいOBS対話でも保存欄を維持する。 */
+.vct-settings-tools > details.vct-settings-section{width:100%;margin:0;padding:8px 0}.vct-settings-tools > details.vct-settings-section label{display:block;margin:8px 0}.vct-settings-tools > details.vct-settings-section input[type=text],.vct-settings-tools > details.vct-settings-section input[type=password]{width:100%;box-sizing:border-box}.vct-settings-tools > details.vct-settings-section p{font-size:12px}.vct-settings-tools > details.vct-settings-section button{margin:4px}

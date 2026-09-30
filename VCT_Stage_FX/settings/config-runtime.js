@@ -18,6 +18,8 @@
   const instanceId = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`);
   const defaults = { ...(window.CONFIG_DEFAULT || {}) };
   const fileConfig = { ...(window.CONFIG || {}) };
+  const vctLinkEnabled = fileConfig.VCT_LINK_ENABLED === true;
+  delete defaults.VCT_LINK_ENABLED; delete fileConfig.VCT_LINK_ENABLED;
   const baseline = { ...defaults, ...fileConfig };
   let channel = null;
 
@@ -34,11 +36,13 @@
   };
 
   const localOverrides = readLocal();
+  delete localOverrides.VCT_LINK_ENABLED;
   const effective = { ...baseline, ...localOverrides };
 
   const makeDiff = (nextConfig) => {
     const diff = {};
     for (const [key, value] of Object.entries(nextConfig || {})) {
+      if (key === 'VCT_LINK_ENABLED') continue;
       if (!Object.prototype.hasOwnProperty.call(baseline, key) || baseline[key] !== value) {
         diff[key] = value;
       }
@@ -106,11 +110,23 @@
     }
   };
 
+  function validateShared(payload) {
+    if (!window.VCTStage.registry.get(payload.STAGE_EFFECT_ID)) throw new Error('選択された演出がこのテンプレートでは無効です。演出を有効にしてから読み込んでください。');
+  }
+  function commitLocal(payload) {
+    const next={...effective,...payload};
+    const diff=writeLocal(next);
+    for(const key of Object.keys(localOverrides)) delete localOverrides[key];
+    Object.assign(localOverrides,diff); Object.assign(effective,next);
+    window.dispatchEvent(new CustomEvent('vct-settings-committed',{detail:{...effective}}));
+    return next;
+  }
   openChannel();
 
   window.CONFIG = effective;
   window.VCT_CONFIG_RUNTIME = Object.freeze({
     templateId,
+    vctLinkEnabled, commitLocal, validateShared,
     profileId,
     profileWarning,
     effectsStorageKey: `vct.stage-fx.effects.${JSON.stringify(templateId)}`,

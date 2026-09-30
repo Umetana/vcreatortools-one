@@ -15,7 +15,6 @@
 - `style.css`: コメントレイアウト、ギフト/メンバー/固定コメントの見た目、入退場アニメーションを定義。
 - `config.js`: 実際に読み込まれる設定。
 - `config_default.js`: 設定エディタのデフォルト復元用設定。
-- `config_editor.html`: 設定変更用UI。
 - `settings/config-runtime.js`: default、config.js、localStorageを合成して最終設定を確定。
 - `settings/settings-launcher.js`: 右下ギアと設定UIの遅延読み込みを担当。
 - `settings/settings-schema.js`: 画面内設定パネルの項目定義。
@@ -133,6 +132,5 @@ V2.8では設定パネルから `vct-settings-preview` カスタムイベント�
 - `index.html` のタイトル、DOM構造、追加レイヤー
 - `main.js` の `normalizeComment()` 後の表示用データ加工
 - `style.css` の配色、レイアウト、アニメーション
-- `config.js` / `config_default.js` / `config_editor.html` / `settings/settings-schema.js` の設定項目
 
 演出を追加する場合は、コメントオブジェクトに追加データを持たせ、`index.html` で描画し、`style.css` でアニメーションを定義する構成が扱いやすいです。

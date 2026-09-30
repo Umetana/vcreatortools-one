@@ -58,15 +58,16 @@
     onStatus: text => { connectionStatus = text; }
   });
   const preview = event => { if (!disposed && event.detail && typeof event.detail === 'object') apply(event.detail); };
-  const reset = () => { if (!disposed) apply(initial); };
+  const reset = () => { if (!disposed) apply(window.VCT_CONFIG_RUNTIME.effective); };
   const visibility = () => { if (!disposed) apply(config); };
   function destroy() {
     if (disposed) return;
     disposed = true; adapter.destroy(); host.destroy(); widget.destroy(); layout.destroy();
-    window.removeEventListener('vct-settings-preview', preview); window.removeEventListener('vct-settings-reset-preview', reset);
+    window.removeEventListener('vct-settings-committed', preview); window.removeEventListener('vct-settings-preview', preview); window.removeEventListener('vct-settings-reset-preview', reset);
     document.removeEventListener('visibilitychange', visibility);
   }
   window.addEventListener('vct-settings-preview', preview);
+  window.addEventListener('vct-settings-committed', preview);
   window.addEventListener('vct-settings-reset-preview', reset);
   document.addEventListener('visibilitychange', visibility);
   window.addEventListener('pagehide', destroy, { once: true });
