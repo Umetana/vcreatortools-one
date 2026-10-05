@@ -5,6 +5,16 @@
     display: { title: '表示方式', fields: {
       DISPLAY_MODE: { type: 'select', options: ['stack', 'popup', 'underbar'], labels: { stack: '縦積み', popup: 'ポップアップ', underbar: 'Underbar（横流し・横積み）' }, label: 'コメントの表示方式' }
     } },
+    supportBoard: { title: 'ギフトカード配置', fields: {
+      SUPPORT_BOARD_ENABLED: { type: 'checkbox', label: 'ギフトカードを残す' },
+      SUPPORT_BOARD_SUPERCHAT: { type: 'checkbox', label: 'スーパーチャットを残す' },
+      SUPPORT_BOARD_SUPERSTICKER: { type: 'checkbox', label: 'スーパーステッカーを残す' },
+      SUPPORT_BOARD_JEWEL: { type: 'checkbox', label: 'ジュエルを残す' },
+      SUPPORT_BOARD_MEMBERSHIP_GIFT: { type: 'checkbox', label: 'メンバーシップギフト送信を残す' },
+      SUPPORT_BOARD_GIFT_RECEIVED: { type: 'checkbox', label: 'メンバーシップギフト受取を残す' },
+      SUPPORT_BOARD_OTHER: { type: 'checkbox', label: 'その他のギフト（SDK支援判定）を残す' },
+      SUPPORT_BOARD_WIDTH: { type: 'range', min: 180, max: 1200, step: 10, label: '配置カードの幅 (px)' }
+    } },
     underbar: { title: 'Underbar設定', display: 'underbar', fields: {
       UNDERBAR_MODE: { type: 'select', options: ['ticker', 'stack'], labels: { ticker: '横流し', stack: '横積み（新着で押し出す）' }, label: 'Underbarの表示' },
       UNDERBAR_SLIDE_MS: { type: 'range', min: 0, max: 2000, step: 50, label: 'スライド時間 (ms・横積みのみ)' },

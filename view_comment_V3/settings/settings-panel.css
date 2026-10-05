@@ -306,3 +306,7 @@
   font-variant-numeric: tabular-nums;
 }
 .vct-settings-range-number::-webkit-inner-spin-button { opacity: 1; }
+
+.vct-board-clear-confirm { margin-top:8px; padding:10px; border:1px solid #854545; border-radius:6px; font-size:12px; }
+.vct-board-clear-confirm p { margin:0 0 8px; line-height:1.6; }
+.vct-board-clear-confirm button + button { margin-left:8px; }

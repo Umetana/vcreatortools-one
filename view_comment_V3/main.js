@@ -3,16 +3,20 @@
 const { createApp, ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } = window.Vue || Vue;
 
 createApp({
-  components: { StarsEffect: window.VCT_STARS.component, HeartEffect: window.VCT_HEART.component, FlashEffect: window.VCT_FLASH.component },
+  components: { CommentCard: window.VCT_COMMENT_CARD, SupportBoard: window.VCT_SUPPORT_BOARD },
   setup() {
     const comments = ref([]);
+    const boardStore = window.VCT_BOARD_STORE;
+    const boardCards = ref(boardStore.read().cards);
+    const removeBoardCard = key => { boardCards.value = boardCards.value.filter(c => c.displayOrder !== key); boardStore.setCards(boardCards.value); };
+    const clearBoardCards = () => { if (boardStore.clear()) boardCards.value = []; };
     const C = reactive({ ...(window.CONFIG || {}) });
     const appliedConfig = { ...(window.CONFIG || {}) };
     const display = window.VCT_DISPLAY;
     const isPopup = computed(() => display.popup(C));
     const isUnderbar = computed(() => C.DISPLAY_MODE === 'underbar');
     const displayStyle = cmt => display.style(cmt, C);
-    let displayOrder = 0;
+    let displayOrder = Math.max(0, ...boardCards.value.map(c => c.displayOrder));
     const removeDisplayed = key => {
       const index = comments.value.findIndex(c => c.displayOrder === key);
       if (index !== -1) comments.value.splice(index, 1);
@@ -271,7 +275,7 @@ createApp({
       const modeChanged = previousMode !== C.DISPLAY_MODE;
       updateStyle();
 
-      comments.value = comments.value.map((current) => {
+      const refreshCard = (current) => {
         const refreshed = current.raw ? parseComment(current.raw) : null;
         if (!refreshed) return current;
 
@@ -286,7 +290,9 @@ createApp({
           giftColor: refreshed.isSpecial ? refreshed.colorStr : null,
           timestamp: current.timestamp
         };
-      });
+      };
+      comments.value = comments.value.map(refreshCard);
+      boardCards.value = boardCards.value.map(refreshCard);
 
       syncDisplay();
     };
@@ -308,6 +314,7 @@ createApp({
 
       return {
         id: parsed.id,
+        eventKind: event.kind,
         name: parsed.user?.displayName || parsed.user?.name || 'Anonymous',
         profileImage: parsed.user?.profileImage || '',
         badges: parsed.user?.badges || [],
@@ -350,6 +357,10 @@ createApp({
         timestamp: Date.now()
       };
 
+      if (window.VCT_BOARD_ELIGIBLE(comment, C)) {
+        boardCards.value.push({ ...newCmt });
+        boardStore.setCards(boardCards.value);
+      }
       comments.value.push(newCmt);
       syncDisplay();
     };
@@ -359,6 +370,7 @@ createApp({
     };
     onMounted(() => {
       window.addEventListener('resize', handleDisplayResize);
+      window.addEventListener('vct-board-clear', clearBoardCards);
       updateStyle();
       window.addEventListener('vct-settings-preview', handleSettingsPreview);
       window.addEventListener('vct-settings-reset-preview', handleSettingsReset);
@@ -398,6 +410,7 @@ createApp({
 
     onBeforeUnmount(() => {
       window.removeEventListener('resize', handleDisplayResize);
+      window.removeEventListener('vct-board-clear', clearBoardCards);
       ++displayRevision;
       underbar.reset();
       lifetime.clear();
@@ -407,6 +420,8 @@ createApp({
 
     return {
       comments,
+      boardCards,
+      removeBoardCard,
       config: C,
       stackClass,
       isPopup,

@@ -177,6 +177,33 @@
       for (const [key, field] of Object.entries(section.fields)) {
         group.appendChild(makeInput(key, field));
       }
+      if (Object.prototype.hasOwnProperty.call(section.fields, 'SUPPORT_BOARD_ENABLED')) {
+        // OBSの対話でも操作できるよう、標準confirmではなくパネル内で確認する。
+        const confirmation = document.createElement('div');
+        confirmation.className = 'vct-board-clear-confirm';
+        confirmation.hidden = true;
+        const message = document.createElement('p');
+        message.textContent = '配置カードと保存内容をすべて消去します。通常ログと設定は残ります。この操作は取り消せません。';
+        const trigger = createButton('配置したギフトカードを全消去', 'is-danger', () => {
+          confirmation.hidden = false;
+          trigger.hidden = true;
+          cancel.focus();
+        });
+        const resetConfirmation = () => {
+          confirmation.hidden = true;
+          trigger.hidden = false;
+          trigger.focus();
+        };
+        const cancel = createButton('キャンセル', 'is-secondary', resetConfirmation);
+        const confirm = createButton('全消去を実行', 'is-danger', () => {
+          window.dispatchEvent(new Event('vct-board-clear'));
+          const error = window.VCT_BOARD_STORE?.error;
+          setStatus(error || '配置カードと保存内容を全消去しました。', !!error);
+          resetConfirmation();
+        });
+        confirmation.append(message, cancel, confirm);
+        group.append(trigger, confirmation);
+      }
       controls.appendChild(group);
     }
     colorPicker?.refresh();

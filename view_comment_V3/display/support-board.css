@@ -1,0 +1,15 @@
+/* 通常ログの表示方式・寿命とは独立した配置領域。 */
+.support-board { position:fixed; inset:0; z-index:1000; pointer-events:none; }
+.support-board-card { position:absolute; max-width:100vw; }
+.support-board-card .cmt { width:100%; box-sizing:border-box; }
+.support-board.is-editing .support-board-card { pointer-events:auto; cursor:grab; touch-action:none; user-select:none; }
+.support-board.is-editing .support-board-card:active { cursor:grabbing; }
+.support-board-remove { position:absolute; right:2px; top:2px; width:24px; height:24px; border:1px solid #64748b; border-radius:50%; background:#172033; color:white; cursor:pointer; font-size:18px; padding:0; z-index:2; }
+#support-board-toggle { position:fixed; left:12px; bottom:12px; z-index:2147483000; width:42px; height:42px; border:1px solid #64748b; border-radius:50%; background:#172033; color:white; font-size:24px; cursor:pointer; pointer-events:auto; opacity:0; transition:opacity 160ms; }
+#support-board-toggle:hover,#support-board-toggle:focus-visible,.is-editing #support-board-toggle { opacity:1; }
+#support-board-toggle small { position:absolute; left:44px; bottom:10px; white-space:nowrap; font-size:11px; color:#ddd; background:#172033; border-radius:3px; padding:2px 4px; }
+
+/* 対話終了時はhover・編集中の表示より優先し、残像を防ぐ。 */
+#support-board-toggle.is-suspended { opacity:0; }
+
+.support-board-error { position:fixed; left:12px; bottom:62px; max-width:420px; background:#522; color:#fff; padding:8px; font-size:12px; pointer-events:auto; }
