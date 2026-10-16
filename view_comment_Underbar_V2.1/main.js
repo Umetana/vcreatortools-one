@@ -13,9 +13,16 @@ createApp({
     let laneAvailableAt = [];
     let stackSlideTimer = null;
 
+    // 数値だけの入力はpxとし、%・remなどの単位付き指定は保持する。
+    const resolveCssLength = (value, fallback) => {
+      const text = String(value ?? '').trim();
+      if (!text) return fallback;
+      return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text) ? `${text}px` : text;
+    };
+
     const updateStyle = () => {
       const root = document.documentElement;
-      root.style.setProperty('--max-width', C.MAX_WIDTH || '900px');
+      root.style.setProperty('--max-width', resolveCssLength(C.MAX_WIDTH, '900px'));
       root.style.setProperty('--font-size', (C.FONT_SIZE || 24) + 'px');
       root.style.setProperty('--font-family', C.FONT_FAMILY || 'sans-serif');
       root.style.setProperty('--icon-size', (C.ICON_SIZE || 48) + 'px');
@@ -24,7 +31,7 @@ createApp({
       root.style.setProperty('--underbar-bottom', (C.UNDERBAR_BOTTOM_PX !== undefined ? C.UNDERBAR_BOTTOM_PX : 28) + 'px');
       root.style.setProperty('--underbar-side-padding', (C.UNDERBAR_SIDE_PADDING_PX !== undefined ? C.UNDERBAR_SIDE_PADDING_PX : 32) + 'px');
       root.style.setProperty('--underbar-card-min-width', C.UNDERBAR_CARD_MIN_WIDTH || '180px');
-      root.style.setProperty('--underbar-card-max-width', C.UNDERBAR_CARD_WIDTH || '760px');
+      root.style.setProperty('--underbar-card-max-width', resolveCssLength(C.UNDERBAR_CARD_WIDTH, '760px'));
       root.style.setProperty('--underbar-card-height', (C.UNDERBAR_CARD_HEIGHT_PX || 92) + 'px');
       root.style.setProperty('--underbar-stack-card-height', (C.UNDERBAR_STACK_CARD_HEIGHT_PX || 128) + 'px');
       root.style.setProperty('--underbar-stack-message-lines', Math.max(1, Math.floor(Number(C.UNDERBAR_STACK_MESSAGE_LINES || 3))));
@@ -39,7 +46,7 @@ createApp({
       root.style.setProperty('--member-border-opacity', (C.MEMBER_BORDER_OPACITY !== undefined ? C.MEMBER_BORDER_OPACITY : 1.0));
 
       root.style.setProperty('--bg-glass', C.BG_GLASS || 'rgba(0, 0, 0, 0.45)');
-      root.style.setProperty('--bg-blur', C.BG_BLUR || '12px');
+      root.style.setProperty('--bg-blur', resolveCssLength(C.BG_BLUR, '12px'));
       root.style.setProperty('--base-border-color', C.BASE_BORDER_COLOR || '#ffffff');
       root.style.setProperty('--base-border-opacity', (C.BASE_BORDER_OPACITY !== undefined ? C.BASE_BORDER_OPACITY : 0.15));
       root.style.setProperty('--base-border-width', (C.BASE_BORDER_WIDTH !== undefined ? C.BASE_BORDER_WIDTH : 1) + 'px');

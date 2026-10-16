@@ -12,9 +12,16 @@ createApp({
     const C = reactive({ ...(window.CONFIG || {}) });
     const appliedConfig = { ...(window.CONFIG || {}) };
 
+    // 数値だけの入力はpxとし、%・remなどの単位付き指定は保持する。
+    const resolveCssLength = (value, fallback) => {
+      const text = String(value ?? '').trim();
+      if (!text) return fallback;
+      return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text) ? `${text}px` : text;
+    };
+
     const updateStyle = () => {
       const root = document.documentElement;
-      root.style.setProperty('--max-width', C.MAX_WIDTH || '900px');
+      root.style.setProperty('--max-width', resolveCssLength(C.MAX_WIDTH, '900px'));
       root.style.setProperty('--font-size', (C.FONT_SIZE || 24) + 'px');
       root.style.setProperty('--font-family', C.FONT_FAMILY || 'sans-serif');
       root.style.setProperty('--icon-size', (C.ICON_SIZE || 48) + 'px');
@@ -26,7 +33,7 @@ createApp({
       root.style.setProperty('--gift-border-opacity', (C.GIFT_BORDER_OPACITY !== undefined ? C.GIFT_BORDER_OPACITY : 0.8));
 
       root.style.setProperty('--bg-glass', C.BG_GLASS || 'rgba(0, 0, 0, 0.45)');
-      root.style.setProperty('--bg-blur', C.BG_BLUR || '12px');
+      root.style.setProperty('--bg-blur', resolveCssLength(C.BG_BLUR, '12px'));
       root.style.setProperty('--text-main', C.TEXT_MAIN || '#ffffff');
       root.style.setProperty('--text-name', C.TEXT_NAME || '#eeeeee');
       root.style.setProperty('--accent-color', C.ACCENT_COLOR || '#ffd700');

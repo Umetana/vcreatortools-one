@@ -6,7 +6,7 @@
       title: '基本表示設定',
       fields: {
         MAX_ITEMS: { type: 'number', label: '最大表示件数' },
-        MAX_WIDTH: { type: 'text', label: '最大横幅（互換用）' }
+        MAX_WIDTH: { type: 'text', label: '最大横幅（互換用・数値はpx）' }
       }
     },
     underbar: {
@@ -17,7 +17,7 @@
         UNDERBAR_LANES: { type: 'number', label: 'レーン数' },
         UNDERBAR_SCROLL_MS: { type: 'number', label: '横断時間 (ms)' },
         UNDERBAR_CARD_MIN_WIDTH: { type: 'text', label: 'コメント枠の最小横幅' },
-        UNDERBAR_CARD_WIDTH: { type: 'text', label: 'コメント枠の最大横幅' },
+        UNDERBAR_CARD_WIDTH: { type: 'text', label: 'コメント枠の最大横幅（数値はpx、単位付きも可）' },
         UNDERBAR_CARD_HEIGHT_PX: { type: 'number', label: 'コメント枠の高さ (px)' },
         UNDERBAR_STACK_MAX_ITEMS: { type: 'number', label: 'stack最大表示件数' },
         UNDERBAR_STACK_EXIT_CARDS: { type: 'number', label: 'stack退場距離' },
@@ -79,7 +79,7 @@
       title: 'カラー・スタイル',
       fields: {
         BG_GLASS: { type: 'text', label: '背景色' },
-        BG_BLUR: { type: 'text', label: 'ぼかし' },
+        BG_BLUR: { type: 'text', label: 'ぼかし（数値はpx、単位付きも可）' },
         BASE_BORDER_COLOR: { type: 'color', label: '通常枠線色' },
         BASE_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '通常枠線の濃さ' },
         BASE_BORDER_WIDTH: { type: 'number', label: '通常枠線の太さ (px)' },

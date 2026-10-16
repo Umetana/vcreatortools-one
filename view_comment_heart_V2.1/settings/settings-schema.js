@@ -6,7 +6,7 @@
       title: '基本表示設定',
       fields: {
         MAX_ITEMS: { type: 'number', label: '最大表示件数' },
-        MAX_WIDTH: { type: 'text', label: '最大横幅' },
+        MAX_WIDTH: { type: 'text', label: '最大横幅（数値はpx、単位付きも可）' },
         STACK_DIRECTION: { type: 'select', options: ['up', 'down'], label: '積み上げ方向' },
         ITEM_GAP_PX: { type: 'number', label: 'コメント間隔 (px)' }
       }
@@ -70,7 +70,7 @@
       title: 'カラー・スタイル',
       fields: {
         BG_GLASS: { type: 'text', label: '背景色 (rgba形式)' },
-        BG_BLUR: { type: 'text', label: 'ぼかし' },
+        BG_BLUR: { type: 'text', label: 'ぼかし（数値はpx、単位付きも可）' },
         TEXT_MAIN: { type: 'color', label: '本文色' },
         TEXT_NAME: { type: 'color', label: '名前色' },
         ACCENT_COLOR: { type: 'color', label: 'アクセント色' },
