@@ -12,6 +12,8 @@
   let statusText;
   let colorPicker;
   let colorPickerMount;
+  let reloadConfirmation;
+  let placement;
   const panelSideKey = `${runtime.storageKey}.panel-side`;
   let panelSide = 'right';
   let panelCollapsed = false;
@@ -152,6 +154,17 @@
     } else {
       input.type = field.type === 'color' && /^#[0-9a-f]{6}$/i.test(draft[key] || '') ? 'color' : field.type;
       input.value = draft[key] ?? '';
+      if (['MAX_WIDTH', 'BG_BLUR'].includes(key)) {
+        const commitLength = () => {
+          if (root.hidden) return;
+          input.value = runtime.normalizeLength(input.value);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        input.addEventListener('blur', commitLength);
+        input.addEventListener('keydown', event => {
+          if (event.key === 'Enter') { event.preventDefault(); commitLength(); }
+        });
+      }
     }
 
     row.appendChild(input);
@@ -216,12 +229,14 @@
       if (input.type === 'checkbox') next[key] = input.checked;
       else if (input.type === 'number' || input.type === 'range') next[key] = Number(input.value);
       else if (input.classList.contains('vct-settings-color-text')) next[key] = normalizeHexColor(input.value);
+      else if (['MAX_WIDTH', 'BG_BLUR'].includes(key)) next[key] = runtime.normalizeLength(input.value);
       else next[key] = input.value;
     });
     return next;
   };
 
   const emitPreview = (nextConfig) => {
+    placement?.setConfig(nextConfig || collect());
     window.dispatchEvent(new CustomEvent('vct-settings-preview', {
       detail: { ...(nextConfig || collect()) }
     }));
@@ -308,12 +323,14 @@
     controls = document.createElement('div');
     controls.className = 'vct-settings-controls';
     controls.addEventListener('input', () => {
+      if (root.hidden) return;
       draft = collect();
       updateEffectVisibility();
       emitPreview(draft);
       setStatus('プレビュー中です。保存するまで確定されません。');
     });
     controls.addEventListener('change', () => {
+      if (root.hidden) return;
       draft = collect();
       updateEffectVisibility();
       emitPreview(draft);
@@ -322,6 +339,11 @@
     const tools = document.createElement('div');
     tools.className = 'vct-settings-tools';
     tools.append(
+      createButton('変更を保存', 'is-primary', () => saveChanges()),
+      createButton('再読み込み', 'is-secondary', () => {
+        if (isDirty()) reloadConfirmation.hidden = false;
+        else window.location.reload();
+      }),
       createButton('現在の設定', 'is-secondary', () => loadDraft(runtime.effective, '現在の適用値を読み込みました。')),
       createButton('config.js', 'is-secondary', () => loadDraft(runtime.baseline, 'config.js の値を読み込みました。')),
       createButton('初期設定', 'is-secondary', () => loadDraft(runtime.defaults, '初期設定を読み込みました。')),
@@ -357,6 +379,22 @@
     });
     tools.append(createButton('ファイルから読込', 'is-secondary', () => fileInput.click()), fileInput);
 
+    reloadConfirmation = document.createElement('div');
+    reloadConfirmation.className = 'vct-settings-tools';
+    reloadConfirmation.hidden = true;
+    const reloadMessage = document.createElement('p');
+    reloadMessage.textContent = '未保存の変更を破棄して再読み込みしますか？';
+    reloadConfirmation.append(reloadMessage,
+      createButton('破棄して再読み込み', 'is-danger', () => window.location.reload()),
+      createButton('取消', 'is-secondary', () => { reloadConfirmation.hidden = true; }));
+    const previewTools = document.createElement('div');
+    previewTools.className = 'vct-settings-tools';
+    const placementButton = createButton('マウス調整を開始', 'is-secondary', () => placement.toggle());
+    previewTools.append(placementButton);
+    for (const [kind, label] of [['normal', '通常を試す'], ['support', '支援を試す'], ['membership', 'メンバーを試す'], ['clear', 'テスト表示を消去']]) {
+      previewTools.append(createButton(label, 'is-secondary', () => window.dispatchEvent(new CustomEvent('vct-test-comment', { detail: kind }))));
+    }
+
     colorPickerMount = document.createElement('div');
     colorPickerMount.className = 'vct-settings-inline-color-picker';
     if (window.VCTInlineColorPicker?.create) {
@@ -375,7 +413,7 @@
       }),
       createButton('保存して再読み込み', 'is-primary', () => {
         try {
-          runtime.writeLocal(collect());
+          runtime.commitLocal(collect());
           runtime.broadcastReload?.('settings-saved');
           window.location.reload();
         } catch (error) {
@@ -384,8 +422,29 @@
       })
     );
 
-    panel.append(header, tools, colorPickerMount, controls, statusText, footer);
+    panel.append(header, tools, reloadConfirmation, previewTools, colorPickerMount, controls, statusText, footer);
     root.append(backdrop, panel);
+    placement = window.VCT_DISPLAY_PLACEMENT.create({
+      mount: root,
+      onState({ enabled, supported }) {
+        placementButton.disabled = !supported;
+        placementButton.textContent = supported ? (enabled ? 'マウス調整を終了' : 'マウス調整を開始') : 'マウス調整（未対応）';
+        placementButton.setAttribute('aria-pressed', String(enabled));
+      },
+      onChange(patch) {
+        if (root.hidden) return;
+        draft = { ...collect(), ...patch };
+        // ドラッグ中の要素を作り直さず、数値欄とスライダーを一緒に更新する。
+        for (const [key, value] of Object.entries(patch)) {
+          const input = controls.querySelector(`[data-config-key="${key}"]`);
+          const number = controls.querySelector(`[data-range-key="${key}"]`);
+          if (input) input.value = value;
+          if (number) number.value = value;
+        }
+        emitPreview(draft);
+        setStatus('配置をプレビュー中です。「変更を保存」で確定できます。');
+      }
+    });
     document.body.appendChild(root);
     updateSource();
     render();
@@ -396,8 +455,12 @@
     if (!root) build();
     draft = { ...runtime.effective };
     panelCollapsed = false;
+    reloadConfirmation.hidden = true;
+    updateSource();
     render();
     setStatus('設定変更は画面へ一時反映されます。保存するまで確定されません。');
+    placement.setConfig(draft);
+    placement.setEnabled(false);
     root.hidden = false;
     updatePanelUi();
     document.documentElement.classList.add('vct-settings-open');
@@ -405,12 +468,24 @@
 
   function close() {
     if (!root) return;
+    placement.setEnabled(false);
+    root.hidden = true;
+    window.dispatchEvent(new CustomEvent('vct-test-comment', { detail: 'clear' }));
     window.dispatchEvent(new CustomEvent('vct-settings-reset-preview'));
     draft = { ...runtime.effective };
-    root.hidden = true;
     document.documentElement.classList.remove('vct-settings-open');
     document.getElementById('vct-settings-launcher')?.blur();
   }
 
-  window.VCT_SETTINGS_PANEL = Object.freeze({ open, close });
+  const isDirty = () => !!root && !root.hidden && Object.entries(collect()).some(([key, value]) => value !== runtime.effective[key]);
+  function saveChanges() {
+    try {
+      runtime.commitLocal(collect());
+      draft = { ...runtime.effective };
+      reloadConfirmation.hidden = true;
+      updateSource();
+      setStatus('変更を保存しました。再読み込みはしていません。');
+    } catch (error) { setStatus('ローカル設定を保存できませんでした。', true); }
+  }
+  window.VCT_SETTINGS_PANEL = Object.freeze({ open, close, isDirty });
 })();

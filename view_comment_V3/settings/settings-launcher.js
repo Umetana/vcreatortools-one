@@ -91,6 +91,8 @@
         loadScript('./settings/settings-schema.js'),
         loadScript('./settings/config-parser.js')
       ]);
+      await loadScript('./lib/placement-editor/v1/placement-editor.js');
+      await loadScript('./settings/display-placement.js');
       await loadScript('./settings/settings-panel.js');
       window.VCT_SETTINGS_PANEL?.open();
     } catch (error) {

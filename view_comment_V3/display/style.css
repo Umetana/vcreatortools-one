@@ -21,3 +21,13 @@
 .display-underbar .cmt__content { width: max-content; }
 .display-underbar .cmt__header { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
 .display-underbar .cmt__message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 元の20px余白と幅計算を維持し、縦積みのリスト全体だけを移動・拡縮する。 */
+#app.stack-up:not(.display-popup):not(.display-underbar) > .cmt-list {
+  transform-origin: left bottom;
+  transform: translate(calc(var(--stack-x, 20px) - 20px), calc(20px - var(--stack-edge, 20px))) scale(var(--stack-scale, 1));
+}
+#app.stack-down:not(.display-popup):not(.display-underbar) > .cmt-list {
+  transform-origin: left top;
+  transform: translate(calc(var(--stack-x, 20px) - 20px), calc(var(--stack-edge, 20px) - 20px)) scale(var(--stack-scale, 1));
+}

@@ -310,3 +310,29 @@
 .vct-board-clear-confirm { margin-top:8px; padding:10px; border:1px solid #854545; border-radius:6px; font-size:12px; }
 .vct-board-clear-confirm p { margin:0 0 8px; line-height:1.6; }
 .vct-board-clear-confirm button + button { margin-left:8px; }
+
+.vct-settings-tools[hidden] { display: none; }
+
+/* 高さの低いOBS対話でも操作部と設定項目へ到達できるようにする。 */
+.vct-settings-panel { overflow-y: auto; }
+.vct-settings-panel > :not(.vct-settings-controls) { flex-shrink: 0; }
+.vct-settings-controls { min-height: 120px; }
+
+/* 編集ハンドルは背景の前、設定パネルの後ろ。折りたたみ中も操作できる。 */
+.vct-settings-panel { z-index: 2; }
+#vct-display-placement {
+  position: fixed; z-index: 1; pointer-events: auto; touch-action: none; user-select: none;
+  box-sizing: border-box; height: 56px; padding: 2px;
+  border: 2px dashed #7dd3fc; border-radius: 6px; background: rgba(125, 211, 252, .06);
+  color: #fff; font-size: 12px; text-align: center; cursor: move;
+}
+#vct-display-placement > span { display: inline-block; padding: 2px 5px; border-radius: 3px; background: rgba(15, 23, 42, .85); }
+#vct-display-placement[hidden] { display: none; }
+#vct-display-placement[data-mode="anchor"],
+#vct-display-placement[data-mode="random"] { transform: translate(-50%, -50%); }
+#vct-display-placement[data-mode="anchor"]::after {
+  content: '+'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  color: #7dd3fc; font-size: 28px; pointer-events: none;
+}
+#vct-display-placement[data-mode="underbar"] { cursor: ns-resize; }
+#vct-display-placement[data-mode="random"] { cursor: default; }

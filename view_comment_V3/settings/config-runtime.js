@@ -21,6 +21,13 @@
   const baseline = { ...defaults, ...fileConfig };
   let channel = null;
 
+  // 長さの欄は単位なし数値をpxとする。単位付き・CSS式はそのまま扱う。
+  const normalizeLength = value => {
+    const text = String(value ?? '').trim();
+    return /^\+?(?:\d+\.?\d*|\.\d+)$/.test(text) && Number.isFinite(Number(text))
+      ? `${Number(text)}px` : text;
+  };
+
   const readLocal = () => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -59,6 +66,18 @@
       console.error('[VCT Settings] localStorage write failed.', error);
       throw error;
     }
+  };
+
+  // 保存に成功してから、開いている画面の確定値を更新する。
+  const commitLocal = (nextConfig) => {
+    const next = { ...baseline, ...nextConfig };
+    const diff = writeLocal(next);
+    for (const key of Object.keys(localOverrides)) delete localOverrides[key];
+    Object.assign(localOverrides, diff);
+    for (const key of Object.keys(effective)) delete effective[key];
+    Object.assign(effective, next);
+    window.dispatchEvent(new CustomEvent('vct-settings-committed', { detail: { ...effective } }));
+    return diff;
   };
 
   const clearLocal = () => {
@@ -121,9 +140,11 @@
     baseline,
     localOverrides,
     effective,
-    source: Object.keys(localOverrides).length ? 'localStorage' : (Object.keys(fileConfig).length ? 'config.js' : 'config_default.js'),
+    get source() { return Object.keys(localOverrides).length ? 'localStorage' : (Object.keys(fileConfig).length ? 'config.js' : 'config_default.js'); },
     makeDiff,
+    normalizeLength,
     writeLocal,
+    commitLocal,
     clearLocal,
     broadcastReload
   });

@@ -5,6 +5,11 @@
     display: { title: '表示方式', fields: {
       DISPLAY_MODE: { type: 'select', options: ['stack', 'popup', 'underbar'], labels: { stack: '縦積み', popup: 'ポップアップ', underbar: 'Underbar（横流し・横積み）' }, label: 'コメントの表示方式' }
     } },
+    stackPlacement: { title: '縦積みの配置', display: 'stack', fields: {
+      STACK_X: { type: 'range', min: 0, max: 3840, step: 1, label: '左端からの位置 (px)' },
+      STACK_EDGE: { type: 'range', min: 0, max: 2160, step: 1, label: '上下端からの位置 (px・上積みは下端／下積みは上端)' },
+      STACK_SCALE: { type: 'range', min: 25, max: 200, step: 5, label: 'コメント欄全体の倍率 (%)' }
+    } },
     supportBoard: { title: 'ギフトカード配置', fields: {
       SUPPORT_BOARD_ENABLED: { type: 'checkbox', label: 'ギフトカードを残す' },
       SUPPORT_BOARD_SUPERCHAT: { type: 'checkbox', label: 'スーパーチャットを残す' },
@@ -87,7 +92,7 @@
       title: '基本表示設定',
       fields: {
         MAX_ITEMS: { type: 'number', label: '最大表示件数' },
-        MAX_WIDTH: { type: 'text', label: '最大横幅' },
+        MAX_WIDTH: { type: 'text', label: '最大横幅（数値のみならpx）' },
         STACK_DIRECTION: { type: 'select', options: ['up', 'down'], label: '積み上げ方向' },
         ITEM_GAP_PX: { type: 'number', label: 'コメント間隔 (px)' }
       }
@@ -140,7 +145,7 @@
       fields: {
         BG_COLOR: { type: 'color', label: '背景色' },
         BG_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '背景透明度' },
-        BG_BLUR: { type: 'text', label: 'ぼかし' },
+        BG_BLUR: { type: 'text', label: 'ぼかし（数値のみならpx）' },
         BASE_BORDER_COLOR: { type: 'color', label: '通常枠線色' },
         BASE_BORDER_OPACITY: { type: 'range', min: 0, max: 1, step: 0.05, label: '通常枠線の濃さ' },
         BASE_BORDER_WIDTH: { type: 'number', label: '通常枠線の太さ (px)' },

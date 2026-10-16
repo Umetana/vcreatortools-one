@@ -54,7 +54,11 @@ createApp({
 
     const updateStyle = () => {
       const root = document.documentElement;
-      root.style.setProperty('--max-width', C.MAX_WIDTH || '900px');
+      const stackValue = (value, min, max, fallback) => Number.isFinite(Number(value)) ? Math.min(max, Math.max(min, Number(value))) : fallback;
+      root.style.setProperty('--stack-x', stackValue(C.STACK_X, 0, 3840, 20) + 'px');
+      root.style.setProperty('--stack-edge', stackValue(C.STACK_EDGE, 0, 2160, 20) + 'px');
+      root.style.setProperty('--stack-scale', stackValue(C.STACK_SCALE, 25, 200, 100) / 100);
+      root.style.setProperty('--max-width', window.VCT_CONFIG_RUNTIME.normalizeLength(C.MAX_WIDTH) || '900px');
       root.style.setProperty('--font-size', (C.FONT_SIZE || 24) + 'px');
       root.style.setProperty('--font-family', C.FONT_FAMILY || 'sans-serif');
       root.style.setProperty('--icon-size', (C.ICON_SIZE || 48) + 'px');
@@ -68,7 +72,7 @@ createApp({
       root.style.setProperty('--member-border-opacity', (C.MEMBER_BORDER_OPACITY !== undefined ? C.MEMBER_BORDER_OPACITY : 1.0));
 
       root.style.setProperty('--bg-glass', resolveBackgroundColor());
-      root.style.setProperty('--bg-blur', C.BG_BLUR || '12px');
+      root.style.setProperty('--bg-blur', window.VCT_CONFIG_RUNTIME.normalizeLength(C.BG_BLUR) || '12px');
       root.style.setProperty('--base-border-color', C.BASE_BORDER_COLOR || '#ffffff');
       root.style.setProperty('--base-border-opacity', (C.BASE_BORDER_OPACITY !== undefined ? C.BASE_BORDER_OPACITY : 0.15));
       root.style.setProperty('--base-border-width', (C.BASE_BORDER_WIDTH !== undefined ? C.BASE_BORDER_WIDTH : 1) + 'px');
@@ -270,6 +274,13 @@ createApp({
     const applyPreviewConfig = (nextConfig) => {
       if (!nextConfig || typeof nextConfig !== 'object') return;
       const previousMode = C.DISPLAY_MODE;
+      // 上下移動だけなら走行位置を保つ。倍率など寸法変更は従来どおり再構成する。
+      if (previousMode === 'underbar' && Object.keys(nextConfig).every(key => key === 'UNDERBAR_BOTTOM' || nextConfig[key] === C[key])) {
+        Object.assign(C, nextConfig);
+        updateStyle();
+        syncDisplay();
+        return;
+      }
       if (previousMode === 'underbar') { underbar.reset(); ++displayRevision; }
       Object.assign(C, nextConfig);
       const modeChanged = previousMode !== C.DISPLAY_MODE;
@@ -281,6 +292,7 @@ createApp({
 
         return {
           ...refreshed,
+          isTest: current.isTest,
           popupSeed: current.popupSeed,
           displayOrder: current.displayOrder,
           displayStartedAt: modeChanged ? Date.now() : current.displayStartedAt,
@@ -302,7 +314,13 @@ createApp({
     };
 
     const handleSettingsReset = () => {
-      applyPreviewConfig(appliedConfig);
+      if (Object.entries(appliedConfig).some(([key, value]) => C[key] !== value)) applyPreviewConfig(appliedConfig);
+    };
+
+    const handleSettingsCommitted = (event) => {
+      Object.assign(appliedConfig, event.detail);
+      // プレビュー済みの値は再描画せず、Underbarの走行も継続する。
+      if (Object.entries(event.detail).some(([key, value]) => C[key] !== value)) applyPreviewConfig(event.detail);
     };
 
     const normalizeComment = (parsed, raw) => {
@@ -338,7 +356,7 @@ createApp({
       return normalizeComment(VCT_SDK.normalize(raw), raw);
     };
 
-    const addComment = (raw) => {
+    const addComment = (raw, isTest = false) => {
       const comment = parseComment(raw);
       if (!comment) return;
 
@@ -346,6 +364,7 @@ createApp({
 
       const newCmt = {
         ...comment,
+        isTest,
         popupSeed: display.createSeed(),
         displayOrder: ++displayOrder,
         displayStartedAt: Date.now(),
@@ -357,7 +376,7 @@ createApp({
         timestamp: Date.now()
       };
 
-      if (window.VCT_BOARD_ELIGIBLE(comment, C)) {
+      if (!isTest && window.VCT_BOARD_ELIGIBLE(comment, C)) {
         boardCards.value.push({ ...newCmt });
         boardStore.setCards(boardCards.value);
       }
@@ -365,10 +384,30 @@ createApp({
       syncDisplay();
     };
 
+    const testComment = (event) => {
+      if (event.detail === 'clear') {
+        if (!comments.value.some(c => c.isTest)) return;
+        comments.value = comments.value.filter(c => !c.isTest);
+        syncDisplay();
+        return;
+      }
+      if (!['normal', 'support', 'membership'].includes(event.detail)) return;
+      const kind = event.detail;
+      addComment({ service: 'youtube', data: {
+        id: 'vct-test-' + Date.now() + '-' + Math.random(),
+        name: 'テストリスナー（表示確認）',
+        comment: '表示確認用のコメントです。ありがとうございます！',
+        giftType: kind === 'support' ? 'superchat' : kind === 'membership' ? 'subscribe' : 'normal',
+        price: kind === 'support' ? 1000 : 0, currency: 'JPY'
+      } }, true);
+    };
+
     const handleDisplayResize = () => {
       if (isUnderbar.value) syncDisplay();
     };
     onMounted(() => {
+      window.addEventListener('vct-test-comment', testComment);
+      window.addEventListener('vct-settings-committed', handleSettingsCommitted);
       window.addEventListener('resize', handleDisplayResize);
       window.addEventListener('vct-board-clear', clearBoardCards);
       updateStyle();
@@ -388,7 +427,7 @@ createApp({
         action: 'comments',
         callback: (res) => {
           const list = Array.isArray(res) ? res : [res];
-          list.forEach(addComment);
+          list.forEach(raw => addComment(raw));
         }
       });
 
@@ -409,6 +448,8 @@ createApp({
     });
 
     onBeforeUnmount(() => {
+      window.removeEventListener('vct-test-comment', testComment);
+      window.removeEventListener('vct-settings-committed', handleSettingsCommitted);
       window.removeEventListener('resize', handleDisplayResize);
       window.removeEventListener('vct-board-clear', clearBoardCards);
       ++displayRevision;
