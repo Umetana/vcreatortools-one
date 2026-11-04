@@ -7,6 +7,7 @@ const http = require('node:http');
 const { pathToFileURL } = require('node:url');
 const { spawn } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
+const servedFolder = path.basename(root);
 const artifacts = path.join(__dirname, 'artifacts');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const mockSDK = `
@@ -81,7 +82,8 @@ class CDP {
   }
 }
 const server = http.createServer((request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  let pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  if (pathname.startsWith('/' + servedFolder + '/')) pathname = pathname.slice(servedFolder.length + 1);
   if (pathname === '/avatar.svg') {
     response.setHeader('Content-Type', 'image/svg+xml');
     response.end('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="16" fill="#6c68ac"/><circle cx="40" cy="30" r="16" fill="#ffe2bc"/><path d="M10 80 Q8 48 40 48 Q72 48 70 80" fill="#d2e5ff"/></svg>');
@@ -122,9 +124,16 @@ const server = http.createServer((request, response) => {
       await cdp.wait('window.__connected === true && !!window.VCT_CONFIG_RUNTIME', sessionId);
       return sessionId;
     };
-    const session = await newPage(cdp.origin + '/index.html?settings=1');
+    const session = await newPage(cdp.origin + '/' + servedFolder + '/index.html?settings=1');
     const evaluate = expression => cdp.evaluate(expression, session);
     await cdp.wait('!!document.querySelector("#vct-settings-root:not([hidden])")', session);
+    // 改名前の設定は自動移行しない。新しいフォルダ名の保存先で起動する。
+    await evaluate(`localStorage.setItem('vct.template-settings.view_comment_rombomb.v1',JSON.stringify({MAX_ITEMS:1,SCALE:2}));`);
+    await cdp.send('Page.reload',{},session);
+    await cdp.wait('window.__connected === true && !!window.VCT_SETTINGS_PANEL',session);
+    assert.equal(await evaluate('window.VCT_CONFIG_RUNTIME.storageKey'),'vct.template-settings.vct_rombomb_v3.v1');
+    assert.equal(await evaluate('window.CONFIG.MAX_ITEMS'),10);
+    assert.equal(await evaluate('window.CONFIG.SCALE'),1);
     assert.deepEqual(await evaluate('window.__setup'), { mode: 'diff', permissions: ['comments','clear'] });
     const setField = async (key, value) => evaluate(`(() => {
       const input = document.querySelector('[data-config-key="${key}"]');
@@ -342,7 +351,7 @@ const server = http.createServer((request, response) => {
     await delay(250);
     await cdp.evaluate(`__clock+=400;window.dispatchEvent(new CustomEvent('rom-test',{detail:'stop'}));`,fileSession);
     assert.equal(await cdp.evaluate('document.querySelector(".rom-time").textContent',fileSession),'00:03');
-    const randomSession = await newPage(cdp.origin + '/index.html?settings=1');
+    const randomSession = await newPage(cdp.origin + '/' + servedFolder + '/index.html?settings=1');
     const randomEval = expression => cdp.evaluate(expression, randomSession);
     await cdp.wait('!!window.VCT_SETTINGS_PANEL', randomSession);
     await randomEval(`window.VCT_CONFIG_RUNTIME.commitLocal({...window.CONFIG_DEFAULT,ARRANGEMENT:'random',MAX_ITEMS:30,RANDOM_X:200,RANDOM_Y:100,RANDOM_WIDTH:900,RANDOM_HEIGHT:500});

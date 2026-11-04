@@ -186,7 +186,7 @@ test('枠待ちで遅れて登場する人も0から開始し、一度も登場�
 test('追加前の保存設定には新項目の初期値だけを補い、既存値を保つ', () => {
   const legacy = { window: {
     CONFIG_DEFAULT: { ...defaults }, CONFIG: {},
-    location: { pathname: '/view_comment_ROMBomb/index.html' },
+    location: { pathname: '/VCT_ROMBomb_V3/index.html' },
     localStorage: { getItem: () => JSON.stringify({ MAX_ITEMS: 4, OFFSET_X: 75 }) }
   } };
   vm.createContext(legacy);
@@ -204,4 +204,5 @@ test('追加前の保存設定には新項目の初期値だけを補い、既�
   assert.equal(legacy.window.CONFIG.RANDOM_HEIGHT, 1080);
   assert.equal(legacy.window.CONFIG.VISUAL_MODE, 'emoji');
   assert.equal(legacy.window.CONFIG.SHATTER_CARDS, false);
+  assert.equal(legacy.window.VCT_CONFIG_RUNTIME.storageKey, 'vct.template-settings.vct_rombomb_v3.v1');
 });

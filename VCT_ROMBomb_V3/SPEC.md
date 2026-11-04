@@ -1,4 +1,4 @@
-# ROM爆弾 v0.1.0 確定仕様
+# VCT ROM爆弾 V3 · 0.1.0 仕様
 
 わんコメのコメント受信を起点に、無言時間の経過後に爆弾を表示する配信演出テンプレート。VCT基盤のコメント正規化・設定保存・配置編集を利用する。
 
@@ -39,6 +39,8 @@
 VCT SDK 2.0.3-devを改変せず同梱。OneSDKの公開setup／subscribe／ready／connect／unsubscribeを既存方式で利用し、modeはdiff、permissionsはcomments・clear。公開CommentDataのID・役割・timestampとVCT正規化結果を利用する。ID・時刻の不足、起動前の履歴、システム通知等は登録しない。詳細な受信条件はREADMEを参照する。
 
 設定はconfig_default.js→config.js→localStorage差分の順。V3.1のconfig-runtime・設定パネル・検証factoryを流用し、ROM爆弾用schemaと時刻順検証を追加。VCT Server連携・DBは使用しない。画像は安全なHTTP(S) URLだけを表示し、名前はtextContentで描画する。
+
+正式フォルダ名はVCT_ROMBomb_V3。V3は基盤世代、0.1.0は製品バージョンを示す。localStorageの保存キーはフォルダ名から生成し、旧フォルダ名の設定は自動移行しない。
 
 監視・時間・人数・対象者・演出条件は保存時に適用し、既存データへ反映する。表示配置・並べ方・折り返し人数・間隔・名前・時間の表示は編集中にプレビューする。閉じると未保存の設定を取り消す。再読み込み不要の保存を基本とする。追加前の保存設定には新項目の初期値（折り返しなし等）だけを補い、既存値を維持する。
 

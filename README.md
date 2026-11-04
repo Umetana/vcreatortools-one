@@ -10,6 +10,7 @@
 - `Ms_Tally_v0_6/`
 - `OBS_gadget_v2_Onecomme/`
 - `VCT_InfoHUD_V2/`
+- `VCT_ROMBomb_V3/`（無言時間をきっかけに爆弾を表示する配信演出）
 - `VCT_SB_V2/`
 - `VCT_SB_V2_UI/`
 - `VCT_Stage_FX/`
@@ -21,7 +22,6 @@
 - `custom_base_template_V3_dev/`
 - `view_comment_Halloween_StageFX_V2_dev/`
 - `view_comment_Halloween_V2/`
-- `view_comment_ROMBomb/`（無言時間をきっかけに爆弾を表示する配信演出）
 - `view_comment_Underbar_V2.1/`
 - `view_comment_V3/`
 - `view_comment_flash_V2.1/`
