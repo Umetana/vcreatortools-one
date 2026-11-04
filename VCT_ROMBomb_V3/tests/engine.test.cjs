@@ -206,5 +206,6 @@ test('追加前の保存設定には新項目の初期値だけを補い、既�
   assert.equal(legacy.window.CONFIG.SHATTER_CARDS, false);
   assert.equal(legacy.window.CONFIG.EXPLOSION_SOUND, false);
   assert.equal(legacy.window.CONFIG.SOUND_VOLUME, 30);
+  assert.equal(legacy.window.CONFIG.SOUND_MODE, 'synth');
   assert.equal(legacy.window.VCT_CONFIG_RUNTIME.storageKey, 'vct.template-settings.vct_rombomb_v3.v1');
 });

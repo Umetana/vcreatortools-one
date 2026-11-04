@@ -199,7 +199,7 @@
       if (row.status === 'exploding' && !sounded.has(soundKey)) {
         sounded.add(soundKey);
         // 設定変更や確認表示の終了で、既に進行中の爆発を鳴らし直さない。
-        if (config.EXPLOSION_SOUND && Date.now() - (row.until - row.duration) < 400) audio.play(config.SOUND_VOLUME);
+        if (config.EXPLOSION_SOUND && Date.now() - (row.until - row.duration) < 400) audio.play(config.SOUND_VOLUME, config.SOUND_MODE);
       }
       const url = safeImage(row.profileImage);
       if (url !== element.imageUrl) {
@@ -255,6 +255,7 @@
   function applyCommitted(event) {
     endEditing();
     const next = window.VCT_TEMPLATE_SETTINGS.validate(event.detail);
+    if (next.SOUND_MODE !== config.SOUND_MODE) audio.stop();
     engine.configure(next, Date.now());
     config = { ...next };
     appearance = { ...next };
@@ -315,10 +316,11 @@
   }
   async function testAudio(event) {
     audio.stop();
-    const volume = Number(event.detail);
+    const volume = Number(event.detail.volume);
+    const mode = event.detail.mode;
     if (volume === 0) {
       window.dispatchEvent(new CustomEvent('rom-audio-status', { detail: '音量が0%のため無音です。' }));
-    } else if (await audio.unlock()) audio.play(volume);
+    } else if (await audio.unlock()) audio.play(volume, mode);
   }
   window.addEventListener('resize', layout);
   window.addEventListener('vct-settings-preview', preview);

@@ -1,11 +1,12 @@
 // MIT Copyright (c) 2026 Umetana
 (function (root) {
   'use strict';
-  function create(AudioContextClass, report = () => {}) {
+  function create(AudioContextClass, report = () => {}, createMedia = url => new root.Audio(url)) {
     let context = null;
     let disposed = false;
     let lastStart = -Infinity;
     let unlocking = null;
+    let mediaPlaying = false;
     const voices = new Set();
     const blocked = () => { if (!disposed) report('音声を開始できません。「爆発音を試聴」を操作してください。'); };
     function getContext() {
@@ -35,7 +36,7 @@
       for (const voice of voices) voice.finish();
       lastStart = -Infinity;
     }
-    function play(volume) {
+    function play(volume, mode = 'synth') {
       const level = Math.min(100, Math.max(0, Number(volume) || 0)) / 100;
       if (disposed || !level) return false;
       let voice;
@@ -44,7 +45,48 @@
         if (!ctx || ctx.state !== 'running') { void unlock(); return false; }
         const now = ctx.currentTime;
         // 連続・同時爆発は一発にまとめ、音量の積み重なりを防ぐ。
-        if (now - lastStart < .4) return false;
+        if (now - lastStart < .4 || mediaPlaying) return false;
+        if (mode === 'mp3') {
+          const media = createMedia('./assets/sound/Explosion Sound.mp3');
+          let finished = false;
+          let timeout;
+          voice = { finish() {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeout);
+            media.onended = media.onerror = null;
+            media.pause();
+            media.removeAttribute('src');
+            media.load();
+            mediaPlaying = false;
+            voices.delete(voice);
+          } };
+          voices.add(voice);
+          media.volume = level;
+          media.onended = () => voice.finish();
+          media.onerror = () => {
+            if (finished) return;
+            voice.finish();
+            report('MP3を読み込めません。assets/sound/Explosion Sound.mp3を確認してください。');
+          };
+          mediaPlaying = true;
+          lastStart = now;
+          // 再生開始が保留されても、後から突然鳴り始めない。
+          timeout = setTimeout(() => {
+            if (finished) return;
+            voice.finish(); blocked();
+          }, 1000);
+          Promise.resolve(media.play()).then(() => {
+            clearTimeout(timeout);
+            if (finished) { media.pause(); return; }
+            report('MP3の爆発音を再生しました。');
+          }).catch(() => {
+            if (finished) return;
+            voice.finish();
+            report('MP3を再生できません。ファイルと音声設定を確認し、試聴を操作してください。');
+          });
+          return true;
+        }
         const noise = ctx.createBufferSource();
         const tone = ctx.createOscillator();
         const filter = ctx.createBiquadFilter();

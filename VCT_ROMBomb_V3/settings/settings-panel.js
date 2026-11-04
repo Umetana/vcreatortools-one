@@ -435,9 +435,10 @@
     const audioStatus = document.createElement('p');
     audioStatus.id = 'rom-audio-status';
     audioStatus.setAttribute('role', 'status');
-    audioStatus.textContent = '効果音は初期設定OFF。試聴は未保存の音量でも再生します。';
+    audioStatus.textContent = '効果音は初期設定OFF。試聴は編集中の種類・音量で再生します。';
     const audioButton = createButton('爆発音を試聴', '', () => {
-      window.dispatchEvent(new CustomEvent('rom-audio-test', { detail: collect().SOUND_VOLUME }));
+      const next = collect();
+      window.dispatchEvent(new CustomEvent('rom-audio-test', { detail: { volume: next.SOUND_VOLUME, mode: next.SOUND_MODE } }));
     });
     audioButton.id = 'rom-audio-test';
     previewTools.append(audioButton, audioStatus);

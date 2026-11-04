@@ -13,6 +13,9 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const mockSDK = `
 window.__tones = 0;
 window.__audioContexts = [];
+window.__media = [];
+const NativeAudio = window.Audio;
+window.Audio = function (...args) { const media = new NativeAudio(...args); window.__media.push(media); return media; };
 const NativeAudioContext = window.AudioContext;
 window.AudioContext = class extends NativeAudioContext {
  constructor(...args) { super(...args); window.__audioContexts.push(this); }
@@ -100,7 +103,7 @@ const server = http.createServer((request, response) => {
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
     response.writeHead(404); response.end(); return;
   }
-  response.setHeader('Content-Type', ({ '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html' })[path.extname(file)] || 'text/plain');
+  response.setHeader('Content-Type', ({ '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.mp3': 'audio/mpeg' })[path.extname(file)] || 'text/plain');
   response.end(fs.readFileSync(file));
 });
 (async () => {
@@ -508,6 +511,36 @@ const server = http.createServer((request, response) => {
     assert.equal(await audioEval('CONFIG.SOUND_VOLUME'),17);
     assert.equal(await audioEval('CONFIG.EXPLOSION_SOUND'),false);
     assert.equal(await audioEval('__audioContexts.length'),0);
+    for (const url of [cdp.origin + '/' + servedFolder + '/index.html?settings=1',pathToFileURL(path.join(root,'index.html')).href+'?settings=1']) {
+      const mp3Session = await newPage(url);
+      const mp3Eval = expression => cdp.evaluate(expression,mp3Session);
+      await cdp.wait('!!window.VCT_SETTINGS_PANEL',mp3Session);
+      await mp3Eval(`VCT_CONFIG_RUNTIME.commitLocal({...CONFIG_DEFAULT,START_MIN:.01,WARN_MIN:.02,DANGER_MIN:.03,EXPLODE_MIN:.04});
+        const mode=document.querySelector('[data-config-key=SOUND_MODE]');mode.value='mp3';mode.dispatchEvent(new Event('change',{bubbles:true}));
+        const volume=document.querySelector('[data-config-key=SOUND_VOLUME]');volume.value=23;volume.dispatchEvent(new Event('input',{bubbles:true}));`);
+      assert.equal(await mp3Eval('CONFIG.SOUND_MODE'),'synth');
+      await cdp.send('Runtime.evaluate',{expression:'document.getElementById("rom-audio-test").click()',userGesture:true},mp3Session);
+      await cdp.wait('__media.length===1 && __media[0].currentTime>0',mp3Session);
+      assert.ok(await mp3Eval('__media[0].duration > 5 && __media[0].duration < 6'));
+      assert.equal(await mp3Eval('__media[0].volume'),.23);
+      assert.equal(await mp3Eval('__tones'),0);
+      await mp3Eval(`VCT_SETTINGS_PANEL.close();VCT_SETTINGS_PANEL.open();`);
+      assert.equal(await mp3Eval('document.querySelector("[data-config-key=SOUND_MODE]").value'),'synth');
+      await mp3Eval(`VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:true,SOUND_MODE:'mp3',SOUND_VOLUME:17});
+        for(let i=0;i<3;i++) __comment('mp3-'+i,'MP3確認'+i);__clock+=600;`);
+      await delay(250);
+      await mp3Eval('__clock+=2400');
+      await cdp.wait('__media.length===2 && __media[1].currentTime>0',mp3Session);
+      await delay(500);
+      assert.equal(await mp3Eval('__media.length'),2);
+      assert.equal(await mp3Eval('__media[1].volume'),.17);
+      await mp3Eval('VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:false})');
+      assert.equal(await mp3Eval('__media[1].paused'),true);
+      await cdp.send('Page.reload',{},mp3Session);
+      await cdp.wait('window.__connected === true',mp3Session);
+      assert.equal(await mp3Eval('CONFIG.SOUND_MODE'),'mp3');
+      assert.equal(await mp3Eval('__media.length'),0);
+    }
     assert.deepEqual(cdp.errors, []);
     assert.deepEqual(cdp.unexpectedRequests, []);
     console.log('Chrome模擬検証: HTTP/file起動、透過、カード・画像・安全な名前表示、段階、設定保存・取消・不正値、一時停止、再読込、確認表示の分離が成功。');

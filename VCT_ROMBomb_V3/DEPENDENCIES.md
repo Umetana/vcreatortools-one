@@ -12,7 +12,8 @@
 | マウス配置 | 同ベースlib/placement-editor/v1のJSを無改変で同梱し、READMEは利用方法中心に整理。ドラッグ・ホイール・縮小座標補正を流用し、設定連動は専用描画とパネルが担当 |
 | OneSDK | ../__origin/js/onesdk.jsを実行時に参照。同梱・改変せず、公開APIのみ利用。動作確認したわんコメの版はTEST_RESULTSを参照 |
 | アイコン・絵文字 | 受信データの画像URLとOSのUnicode絵文字表示。Google Fontsは追加しない |
-| 爆発効果音 | js/rom_audio.jsでWeb Audio APIによる低音・ノイズ合成を実装。音声素材・音声ライブラリ・外部サービスは使用しない |
+| 爆発効果音 | js/rom_audio.jsでWeb Audio APIによる低音・ノイズ合成と、ブラウザ標準のMP3再生を切り替える。音声ライブラリ・実行時の外部サービスは使用しない |
+| MP3効果音 | UmetanaがSUNOの有料プラン契約中に生成したExplosion Sound.mp3をassets/soundへ同梱。形式・ハッシュ・生成元は同フォルダーのREADMEを参照 |
 | Visual mode素材 | 内蔵image_genで本プロジェクト用に生成した透過PNG2点をassets/visualへ同梱。入力画像なし。生成プロンプト・寸法・確認内容は同フォルダーのREADMEに記録 |
 | 素材軽量化 | 制作環境に導入済みのImageMagick 7.1.2-3をtools/optimize_visual_assets.ps1から利用。原寸をasset_originalへ退避し、表示用を512pxの透過PNGへ縮小。ImageMagick本体は同梱せず、テンプレート実行時にも不要 |
 | 自動検証 | 開発用Node.js標準モジュールとChrome。利用者側に追加インストール不要 |

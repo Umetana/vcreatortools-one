@@ -24,6 +24,7 @@ window.CONFIG_DEFAULT = {
   VISUAL_MODE: 'emoji',
   EXPLOSION_EFFECT: true,
   EXPLOSION_SOUND: false,
+  SOUND_MODE: 'synth',
   SOUND_VOLUME: 30,
   SHATTER_CARDS: false,
   EXPLOSION_SECONDS: 2,
