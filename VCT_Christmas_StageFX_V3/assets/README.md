@@ -43,3 +43,17 @@ christmas_treeのManifestにもAI生成画像の使用を記載しています�
 2026-11-04：comment-frame-corner-v1.png はコメント領域の枠向けにOpenAI image_genで新規生成した1254×1254の透過PNGです。第三者の参照画像なし。ヒイラギ・赤い実・赤いリボンを描き、同一素材を四隅へ反転配置します。左上端のアルファ値0を確認しました。MIT、生成素材であることと寸法はcomment-frame.manifest.jsonへ記録しています。辺と輪郭はCSS描画で、生成素材なしでは角も絵文字へ切り替わります。
 
 2026-11-04：コメントカードのクリスマス演出は既存のstar-gold-v1.png・gift-bell-v1.png・ribbon-red-v1.pngを再利用しています。新しい生成画像は追加していません。生成素材なし・画像失敗時は絵文字で代替し、漂う光と新着時の発光はCSSで描画します。
+
+## 配布用の軽量化（2026-11-04）
+
+配布サイズとOBSのメモリ使用量を抑えるため、PNGのまま縮小・最適化しました。ファイル名・形式（透過PNG）・見た目の構図は変えていません。上の各項の寸法は生成時のものです。
+
+| ファイル | 配布時の寸法 |
+| --- | --- |
+| tree-base-v1.png | 800×1200 |
+| present-open-atlas-v1.png | 640×960 |
+| bauble-red／bauble-gold／ribbon-red／gift-bell／gift-present／comment-frame-corner | 512×512 |
+| star-gold-v1.png | 495×512 |
+| background-forest／fireplace／night | 1672×941（寸法は変えず可逆圧縮のみ） |
+
+縮小はLANCZOS（透過は乗算済みアルファで処理）。完全透明の画素は色情報を消しています。生成時の原寸は制作元で保管してください。

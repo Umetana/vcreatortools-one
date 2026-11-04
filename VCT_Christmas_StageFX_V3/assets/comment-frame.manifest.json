@@ -5,6 +5,6 @@
   "license": "MIT",
   "reference": "このテンプレート向けに新規生成。第三者の参照画像なし。",
   "assets": [
-    { "file": "comment-frame-corner-v1.png", "name": "ヒイラギ・赤い実・リボンの角飾り", "width": 1254, "height": 1254, "transparent": true }
+    { "file": "comment-frame-corner-v1.png", "name": "ヒイラギ・赤い実・リボンの角飾り", "width": 512, "height": 512, "transparent": true }
   ]
 }
