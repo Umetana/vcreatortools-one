@@ -31,6 +31,7 @@
     audio: { title: '効果音（保存時に適用）', fields: {
       EXPLOSION_SOUND: { type: 'checkbox', label: '爆発時に効果音を鳴らす' },
       SOUND_MODE: { type: 'select', label: '効果音の種類', options: ['synth', 'mp3'], optionLabels: { synth: 'JS合成', mp3: 'MP3（SUNO生成音）' } },
+      SOUND_OVERLAP: { type: 'checkbox', label: '効果音を重ねる（最大3音・OFFで重ねない）' },
       SOUND_VOLUME: { type: 'range', label: '効果音の音量（%）', min: 0, max: 100, step: 1 }
     } },
     randomArea: { title: 'ランダム配置の範囲', arrangement: 'random', fields: {

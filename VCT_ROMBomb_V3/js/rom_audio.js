@@ -6,7 +6,6 @@
     let disposed = false;
     let lastStart = -Infinity;
     let unlocking = null;
-    let mediaPlaying = false;
     const voices = new Set();
     const blocked = () => { if (!disposed) report('音声を開始できません。「爆発音を試聴」を操作してください。'); };
     function getContext() {
@@ -36,7 +35,7 @@
       for (const voice of voices) voice.finish();
       lastStart = -Infinity;
     }
-    function play(volume, mode = 'synth') {
+    function play(volume, mode = 'synth', overlap = false) {
       const level = Math.min(100, Math.max(0, Number(volume) || 0)) / 100;
       if (disposed || !level) return false;
       let voice;
@@ -44,13 +43,13 @@
         const ctx = getContext();
         if (!ctx || ctx.state !== 'running') { void unlock(); return false; }
         const now = ctx.currentTime;
-        // 連続・同時爆発は一発にまとめ、音量の積み重なりを防ぐ。
-        if (now - lastStart < .4 || mediaPlaying) return false;
+        // 重ねる場合は同時3音まで。上限を超えた分は後から鳴らさない。
+        if (overlap ? voices.size >= 3 : now - lastStart < .4 || [...voices].some(item => item.mode === 'mp3')) return false;
         if (mode === 'mp3') {
           const media = createMedia('./assets/sound/Explosion Sound.mp3');
           let finished = false;
           let timeout;
-          voice = { finish() {
+          voice = { mode: 'mp3', finish() {
             if (finished) return;
             finished = true;
             clearTimeout(timeout);
@@ -58,7 +57,6 @@
             media.pause();
             media.removeAttribute('src');
             media.load();
-            mediaPlaying = false;
             voices.delete(voice);
           } };
           voices.add(voice);
@@ -69,7 +67,6 @@
             voice.finish();
             report('MP3を読み込めません。assets/sound/Explosion Sound.mp3を確認してください。');
           };
-          mediaPlaying = true;
           lastStart = now;
           // 再生開始が保留されても、後から突然鳴り始めない。
           timeout = setTimeout(() => {

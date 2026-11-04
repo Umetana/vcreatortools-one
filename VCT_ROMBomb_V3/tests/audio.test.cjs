@@ -66,6 +66,39 @@ test('MP3の音量・再生中の重複抑止・終了後の再生・停止を�
   f.audio.dispose();
 });
 
+test('合成音は同時3音まで重ね、終了した枠を再利用する', async () => {
+  const f = fixture();
+  await f.audio.unlock();
+  for (let i = 0; i < 30; i++) f.audio.play(30, 'synth', true);
+  assert.equal(f.sources.length, 6);
+  f.sources[1].onended();
+  assert.equal(f.audio.play(30, 'synth', true), true);
+  assert.equal(f.sources.length, 8);
+  f.audio.stop();
+  assert.ok(f.sources.every(source => source.disconnected));
+  f.audio.dispose();
+});
+
+test('MP3は同時3音まで重ね、各音の終了・失敗で枠を開放する', async () => {
+  const media = [];
+  const f = fixture('running', () => {
+    const item = { play() { return Promise.resolve(); }, pause() { this.paused = true; }, removeAttribute() {}, load() {} };
+    media.push(item); return item;
+  });
+  await f.audio.unlock();
+  for (let i = 0; i < 30; i++) f.audio.play(30, 'mp3', true);
+  assert.equal(media.length, 3);
+  media[0].onended();
+  assert.equal(f.audio.play(30, 'mp3', true), true);
+  media[1].onerror();
+  assert.equal(f.audio.play(30, 'mp3', true), true);
+  assert.equal(f.audio.play(30, 'mp3', true), false);
+  f.audio.stop();
+  await Promise.resolve();
+  assert.ok(media.every(item => item.paused));
+  f.audio.dispose();
+});
+
 test('MP3再生の拒否・読込失敗・開始待ちの取消を処理する', async () => {
   let media, resolvePlay;
   const f = fixture('running', () => {

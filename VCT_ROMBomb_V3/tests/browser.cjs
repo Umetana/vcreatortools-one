@@ -521,7 +521,7 @@ const server = http.createServer((request, response) => {
       assert.equal(await mp3Eval('CONFIG.SOUND_MODE'),'synth');
       await cdp.send('Runtime.evaluate',{expression:'document.getElementById("rom-audio-test").click()',userGesture:true},mp3Session);
       await cdp.wait('__media.length===1 && __media[0].currentTime>0',mp3Session);
-      assert.ok(await mp3Eval('__media[0].duration > 5 && __media[0].duration < 6'));
+      assert.ok(await mp3Eval('__media[0].duration > 3.9 && __media[0].duration < 4.1'));
       assert.equal(await mp3Eval('__media[0].volume'),.23);
       assert.equal(await mp3Eval('__tones'),0);
       await mp3Eval(`VCT_SETTINGS_PANEL.close();VCT_SETTINGS_PANEL.open();`);
@@ -534,11 +534,20 @@ const server = http.createServer((request, response) => {
       await delay(500);
       assert.equal(await mp3Eval('__media.length'),2);
       assert.equal(await mp3Eval('__media[1].volume'),.17);
-      await mp3Eval('VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:false})');
+      await mp3Eval(`VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,SOUND_OVERLAP:true});
+        for(let i=0;i<5;i++) __comment('overlap-'+i,'重ね再生確認'+i);__clock+=600;`);
       assert.equal(await mp3Eval('__media[1].paused'),true);
+      await delay(250);
+      await mp3Eval('__clock+=2400');
+      await cdp.wait('__media.length===5 && __media.slice(2).every(item=>item.currentTime>0)',mp3Session);
+      await delay(450);
+      assert.equal(await mp3Eval('__media.length'),5);
+      await mp3Eval('VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:false})');
+      assert.equal(await mp3Eval('__media.every(item=>item.paused)'),true);
       await cdp.send('Page.reload',{},mp3Session);
       await cdp.wait('window.__connected === true',mp3Session);
       assert.equal(await mp3Eval('CONFIG.SOUND_MODE'),'mp3');
+      assert.equal(await mp3Eval('CONFIG.SOUND_OVERLAP'),true);
       assert.equal(await mp3Eval('__media.length'),0);
     }
     assert.deepEqual(cdp.errors, []);

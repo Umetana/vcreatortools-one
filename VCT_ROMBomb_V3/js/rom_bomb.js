@@ -199,7 +199,7 @@
       if (row.status === 'exploding' && !sounded.has(soundKey)) {
         sounded.add(soundKey);
         // 設定変更や確認表示の終了で、既に進行中の爆発を鳴らし直さない。
-        if (config.EXPLOSION_SOUND && Date.now() - (row.until - row.duration) < 400) audio.play(config.SOUND_VOLUME, config.SOUND_MODE);
+        if (config.EXPLOSION_SOUND && Date.now() - (row.until - row.duration) < 400) audio.play(config.SOUND_VOLUME, config.SOUND_MODE, config.SOUND_OVERLAP);
       }
       const url = safeImage(row.profileImage);
       if (url !== element.imageUrl) {
@@ -255,7 +255,7 @@
   function applyCommitted(event) {
     endEditing();
     const next = window.VCT_TEMPLATE_SETTINGS.validate(event.detail);
-    if (next.SOUND_MODE !== config.SOUND_MODE) audio.stop();
+    if (next.SOUND_MODE !== config.SOUND_MODE || next.SOUND_OVERLAP !== config.SOUND_OVERLAP) audio.stop();
     engine.configure(next, Date.now());
     config = { ...next };
     appearance = { ...next };
