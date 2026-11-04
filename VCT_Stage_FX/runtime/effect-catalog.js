@@ -40,9 +40,9 @@
         if (!/^[A-Z][A-Z0-9_]*$/.test(name) || !field || !['checkbox', 'select', 'text', 'color', 'range', 'range-number', 'number'].includes(field.type) ||
             typeof field.label !== 'string' || !['string', 'number', 'boolean'].includes(typeof field.default) ||
             (field.type === 'select' && (!Array.isArray(field.options) || !field.options.length || !field.options.every(value => typeof value === 'string')))) throw new Error(`設定定義が不正です: ${name}`);
-        if (Object.hasOwn(runtime.defaults, name)) throw new Error(`設定キーが重複しています: ${name}`);
+        if (name.startsWith('STAGE_PLUGIN_') || Object.hasOwn(runtime.defaults, name)) throw new Error(`設定キーが重複しています: ${name}`);
       }
-      for (const [name, field] of Object.entries(Effect.manifest.settings || {})) {
+      for (const [name, field] of Object.entries(api.effectFields(id, Effect))) {
         runtime.defaults[name] = field.default;
         runtime.baseline[name] = runtime.fileConfig[name] ?? field.default;
         runtime.effective[name] = runtime.localOverrides[name] ?? runtime.baseline[name];

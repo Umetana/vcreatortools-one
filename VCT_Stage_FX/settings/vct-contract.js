@@ -10,7 +10,8 @@ function validate(value) {
  const result={};
  for(const key of Object.keys(value)) if(!Object.hasOwn(definition.defaults,key)) throw new Error('非対応の設定項目: '+key);
  for(const [key,fallback] of Object.entries(definition.defaults)) {
-  const v=value[key],field=fields[key]||{};
+  // 個別配置の追加前に保存された共有設定は、その項目だけ初期値で補う。
+  const v=value[key]===undefined && key.startsWith('STAGE_PLUGIN_') ? fallback : value[key],field=fields[key]||{};
   if(typeof v!==typeof fallback || (typeof v==='number' && !Number.isFinite(v))) throw new Error('設定値の型が不正です: '+key);
   if(typeof v==='number' && (v<(field.min??0) || v>(field.max??1000000))) throw new Error('設定値が範囲外です: '+key);
   if(field.options && !field.options.includes(v)) throw new Error('選択値が不正です: '+key);
@@ -867,6 +868,160 @@ const contract = factory.create({
       },
       "tab": "effects"
     },
+    "layout:sample_effect": {
+      "title": "サークルの配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "sample_effect",
+      "plugin": "sample_effect",
+      "fields": {
+        "STAGE_PLUGIN_sample_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_sample_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sample_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sample_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sample_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sample_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_sample_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
+        }
+      }
+    },
+    "layout:halloween_parade_effect": {
+      "title": "ハロウィンパレードの配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "halloween_parade_effect",
+      "plugin": "halloween_parade_effect",
+      "fields": {
+        "STAGE_PLUGIN_halloween_parade_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_halloween_parade_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
+        }
+      }
+    },
     "plugin:halloween_parade_effect": {
       "title": "ハロウィンパレードの設定（AI生成画像を同梱）",
       "tab": "effects",
@@ -906,6 +1061,83 @@ const contract = factory.create({
         }
       }
     },
+    "layout:heart_effect": {
+      "title": "Heart（ハート上昇）の配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "heart_effect",
+      "plugin": "heart_effect",
+      "fields": {
+        "STAGE_PLUGIN_heart_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_heart_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_heart_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_heart_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_heart_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_heart_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_heart_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
+        }
+      }
+    },
     "plugin:heart_effect": {
       "title": "Heart（ハート上昇）の設定",
       "tab": "effects",
@@ -939,6 +1171,83 @@ const contract = factory.create({
           "step": 10,
           "default": 100,
           "label": "上昇速度 (px/秒)"
+        }
+      }
+    },
+    "layout:stars_effect": {
+      "title": "Stars（流星）の配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "stars_effect",
+      "plugin": "stars_effect",
+      "fields": {
+        "STAGE_PLUGIN_stars_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_stars_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_stars_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_stars_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_stars_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_stars_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_stars_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
         }
       }
     },
@@ -993,6 +1302,83 @@ const contract = factory.create({
         }
       }
     },
+    "layout:confetti_effect": {
+      "title": "紙吹雪の配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "confetti_effect",
+      "plugin": "confetti_effect",
+      "fields": {
+        "STAGE_PLUGIN_confetti_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_confetti_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_confetti_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_confetti_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_confetti_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_confetti_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_confetti_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
+        }
+      }
+    },
     "plugin:confetti_effect": {
       "title": "紙吹雪の設定",
       "tab": "effects",
@@ -1026,6 +1412,83 @@ const contract = factory.create({
           "step": 10,
           "default": 140,
           "label": "落下速度 (px/秒)"
+        }
+      }
+    },
+    "layout:sparkle_effect": {
+      "title": "Sparkle（きらめき）の配置・強度",
+      "tab": "effectPlacement",
+      "layoutPlugin": "sparkle_effect",
+      "plugin": "sparkle_effect",
+      "fields": {
+        "STAGE_PLUGIN_sparkle_effect_ENABLED": {
+          "type": "checkbox",
+          "label": "この演出を有効にする",
+          "default": true
+        },
+        "STAGE_PLUGIN_sparkle_effect_X": {
+          "type": "range-number",
+          "label": "演出のX位置",
+          "default": 0,
+          "min": 0,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sparkle_effect_Y": {
+          "type": "range-number",
+          "label": "演出のY位置",
+          "default": 0,
+          "min": 0,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sparkle_effect_WIDTH": {
+          "type": "range-number",
+          "label": "演出領域の幅",
+          "default": 1920,
+          "min": 40,
+          "max": 1920,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sparkle_effect_HEIGHT": {
+          "type": "range-number",
+          "label": "演出領域の高さ",
+          "default": 1080,
+          "min": 40,
+          "max": 1080,
+          "step": 5,
+          "numberStep": 1
+        },
+        "STAGE_PLUGIN_sparkle_effect_SCALE": {
+          "type": "range-number",
+          "label": "演出全体の倍率",
+          "default": 1,
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05,
+          "numberStep": 0.01
+        },
+        "STAGE_PLUGIN_sparkle_effect_INTENSITY": {
+          "type": "select",
+          "label": "この演出の強度",
+          "default": "inherit",
+          "options": [
+            "inherit",
+            "small",
+            "standard",
+            "large",
+            "extra"
+          ],
+          "labels": {
+            "inherit": "共通設定を使用",
+            "small": "弱",
+            "standard": "標準",
+            "large": "強",
+            "extra": "最大"
+          }
         }
       }
     },
@@ -1161,21 +1624,63 @@ const contract = factory.create({
     "STAGE_EFFECT_COUNT": 12,
     "STAGE_EFFECT_DURATION_MS": 3000,
     "STAGE_EFFECT_BG_OPACITY": 0,
+    "STAGE_PLUGIN_sample_effect_ENABLED": true,
+    "STAGE_PLUGIN_sample_effect_X": 0,
+    "STAGE_PLUGIN_sample_effect_Y": 0,
+    "STAGE_PLUGIN_sample_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_sample_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_sample_effect_SCALE": 1,
+    "STAGE_PLUGIN_sample_effect_INTENSITY": "inherit",
+    "STAGE_PLUGIN_halloween_parade_effect_ENABLED": true,
+    "STAGE_PLUGIN_halloween_parade_effect_X": 0,
+    "STAGE_PLUGIN_halloween_parade_effect_Y": 0,
+    "STAGE_PLUGIN_halloween_parade_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_halloween_parade_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_halloween_parade_effect_SCALE": 1,
+    "STAGE_PLUGIN_halloween_parade_effect_INTENSITY": "inherit",
     "HALLOWEEN_RENDER_MODE": "emoji",
     "HALLOWEEN_PATTERN": "parade",
+    "STAGE_PLUGIN_heart_effect_ENABLED": true,
+    "STAGE_PLUGIN_heart_effect_X": 0,
+    "STAGE_PLUGIN_heart_effect_Y": 0,
+    "STAGE_PLUGIN_heart_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_heart_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_heart_effect_SCALE": 1,
+    "STAGE_PLUGIN_heart_effect_INTENSITY": "inherit",
     "FX_HEART_COUNT": 18,
     "FX_HEART_SIZE": 80,
     "FX_HEART_COLOR": "#ff598b",
     "FX_HEART_SPEED": 100,
+    "STAGE_PLUGIN_stars_effect_ENABLED": true,
+    "STAGE_PLUGIN_stars_effect_X": 0,
+    "STAGE_PLUGIN_stars_effect_Y": 0,
+    "STAGE_PLUGIN_stars_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_stars_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_stars_effect_SCALE": 1,
+    "STAGE_PLUGIN_stars_effect_INTENSITY": "inherit",
     "FX_STARS_COUNT": 24,
     "FX_STARS_SIZE": 48,
     "FX_STARS_COLOR": "#ffe89c",
     "FX_STARS_SPEED": 300,
     "FX_STARS_DIRECTION": "right",
+    "STAGE_PLUGIN_confetti_effect_ENABLED": true,
+    "STAGE_PLUGIN_confetti_effect_X": 0,
+    "STAGE_PLUGIN_confetti_effect_Y": 0,
+    "STAGE_PLUGIN_confetti_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_confetti_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_confetti_effect_SCALE": 1,
+    "STAGE_PLUGIN_confetti_effect_INTENSITY": "inherit",
     "FX_CONFETTI_COUNT": 60,
     "FX_CONFETTI_SIZE": 16,
     "FX_CONFETTI_COLORS": "#ff6685,#ffd166,#68dfb0,#69bfff,#bc94ff",
     "FX_CONFETTI_SPEED": 140,
+    "STAGE_PLUGIN_sparkle_effect_ENABLED": true,
+    "STAGE_PLUGIN_sparkle_effect_X": 0,
+    "STAGE_PLUGIN_sparkle_effect_Y": 0,
+    "STAGE_PLUGIN_sparkle_effect_WIDTH": 1920,
+    "STAGE_PLUGIN_sparkle_effect_HEIGHT": 1080,
+    "STAGE_PLUGIN_sparkle_effect_SCALE": 1,
+    "STAGE_PLUGIN_sparkle_effect_INTENSITY": "inherit",
     "FX_SPARKLE_COUNT": 24,
     "FX_SPARKLE_SIZE": 64,
     "FX_SPARKLE_COLOR": "#fff1b8"

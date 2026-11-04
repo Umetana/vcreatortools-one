@@ -11,3 +11,4 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 [data-layer="foreground"] { z-index: 50; }
 .stage-region { position: absolute; overflow: hidden; transform-origin: top left; }
 .stage-effect { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+.stage-effect-paused, .stage-effect-paused * { animation-play-state: paused !important; }

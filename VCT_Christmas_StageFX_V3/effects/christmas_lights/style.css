@@ -1,0 +1,10 @@
+.fx-christmas-lights { overflow: hidden; pointer-events: none; }
+.fx-christmas-lights > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.fx-christmas-lights path { fill: none; stroke: #3a4c3f; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.fx-christmas-lights > i {
+  position: absolute; width: 11px; height: 17px; border-radius: 45% 45% 50% 50%;
+  transform: translate(-50%, 0); background: var(--bulb-color);
+  box-shadow: 0 0 9px 3px var(--bulb-color); animation: fx-christmas-lights-glow 4.8s ease-in-out infinite;
+}
+.fx-christmas-lights > i::before { content: ''; position: absolute; top: -4px; left: 3px; width: 5px; height: 5px; background: #4c634d; }
+@keyframes fx-christmas-lights-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }

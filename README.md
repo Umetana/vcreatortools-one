@@ -13,6 +13,7 @@
 - `VCT_SB_V2/`
 - `VCT_SB_V2_UI/`
 - `VCT_Stage_FX/`
+- `VCT_Christmas_StageFX_V3/`（クリスマス演出・開発版0.1.0）
 - `VCT_clock_V2/`
 - `comment_raid_base_v2/`
 - `custom_base_template_V2_8_dev/`
@@ -27,6 +28,8 @@
 - `view_comment_stars_V2.1/`
 
 ## 共通ライブラリ
+
+クリスマス版のV3はコメント表示基盤の世代、0.1.0は製品の開発バージョンです。開発元の`VCT_Christmas_StageFX_dev`は試運転中の参照先として残し、このリポジトリでは正式名で管理します。フォルダ名変更で設定・ツリー成長の保存先も変わり、自動移行はしません。同期対象は製品コード・素材・ライセンス・仕様書・試験コードで、試験コード内のフォルダ参照だけ正式名へ合わせています。わんコメが用意する`__origin`は同梱しません。
 
 - `_vct_core/`: VCT SDK 2系・共有IndexedDB基盤。SDK 1系の凍結版も互換用に保持します。
 - `_vct_lib/`: 共通UI部品。

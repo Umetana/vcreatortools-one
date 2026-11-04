@@ -117,3 +117,70 @@ test('登録検証と素材境界、画像待ちは停止時に解決する', as
   const ready = ctx.assets.ready(image);
   host.destroy(); assert.equal(await ready, false);
 });
+
+test('常設は単発の枠を使わず、上限時間で消えず、配置更新でも同じインスタンスを保持', async () => {
+  const { api, host, Effect, instances } = setup(20);
+  class Persistent extends Effect {
+    static manifest = { stageApi: 1, name: '常設試験', lifecycle: 'persistent' };
+    update(params) { this.params = params; this.updates = (this.updates || 0) + 1; }
+  }
+  api.registry.register('persistent', Persistent);
+  assert.throws(() => api.registry.register('no_update', class extends Effect { static manifest = Persistent.manifest; }));
+  const ambient = new api.EffectHost({ container: { appendChild() {} }, persistent: true, maxRuntimeMs: 20 });
+  ambient.configure({ policy: 'overlap', maxActive: 4 });
+  try {
+    assert.equal(host.trigger('persistent').reason, 'wrong-lifecycle');
+    assert.equal(ambient.trigger('test').reason, 'wrong-lifecycle');
+    const params = { placement: { x: 90, y: 50, width: 400, height: 600, scale: .8 }, paused: false };
+    const result = ambient.trigger('persistent', params);
+    assert.equal(ambient.trigger('persistent').reason, 'already-active');
+    assert.equal(host.trigger('test').status, 'started');
+    const instance = instances[0];
+    await sleep(40);
+    assert.equal(ambient.active.size, 1);
+    assert.equal(instance.context.size.width, 400);
+    assert.equal(instance.context.root.style.left, '90px');
+    assert.equal(instance.context.root.style.transform, 'scale(0.8)');
+    ambient.update(result.id, { ...params, placement: { ...params.placement, x: 200 }, paused: true });
+    assert.equal(instance.destroyCount, 0);
+    assert.equal(instance.context.paused, true);
+    assert.equal(instance.context.root.style.left, '200px');
+    assert.equal(instance.updates, 1);
+    ambient.update(result.id, { ...params, placement: { ...params.placement, x: 200 }, paused: true });
+    assert.equal(instance.updates, 1);
+    ambient.stopAll(); assert.equal(instance.destroyCount, 1);
+  } finally { host.destroy(); ambient.destroy(); }
+});
+
+test('常設の停止はタイマー残時間と表示を保持し、停止中に作ったアニメーションも再開できる', async () => {
+  const { host, instances } = setup();
+  try {
+    host.trigger('test'); const ctx = instances[0].context;
+    ctx.setPaused(true);
+    let called = 0, plays = 0, pauses = 0;
+    ctx.timers.setTimeout(() => called++, 20);
+    ctx.animations.animate({ animate: () => ({ pause() { pauses++; }, play() { plays++; }, cancel() {} }) }, [], {});
+    await sleep(40);
+    assert.equal(called, 0); assert.equal(pauses, 1); assert.equal(ctx.root.removed, undefined);
+    ctx.setPaused(false);
+    await sleep(35);
+    assert.equal(called, 1); assert.equal(plays, 1);
+    ctx.timers.setTimeout(() => called++, 30);
+    ctx.setPaused(true); await sleep(40); assert.equal(called, 1);
+    ctx.setPaused(false); await sleep(45); assert.equal(called, 2);
+    ctx.setPaused(true); const waiting = ctx.timers.wait(1000);
+    host.destroy(); assert.equal(await waiting, false);
+  } finally { host.destroy(); }
+});
+
+test('個別配置の設定キーはPlugin IDごとに分離し、既存の初期表示を維持', () => {
+  const { api, Effect, host } = setup();
+  try {
+    const fields = api.effectFields('test', Effect);
+    assert.equal(fields[api.effectKey('test', 'ENABLED')].default, true);
+    assert.equal(fields[api.effectKey('test', 'WIDTH')].default, 1920);
+    assert.equal(fields[api.effectKey('test', 'SCALE')].default, 1);
+    assert.notEqual(api.effectKey('a-b', 'X'), api.effectKey('a_b', 'X'));
+    assert.notEqual(api.effectKey('A', 'X'), api.effectKey('a', 'X'));
+  } finally { host.destroy(); }
+});

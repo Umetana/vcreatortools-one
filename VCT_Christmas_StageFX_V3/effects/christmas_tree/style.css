@@ -1,0 +1,17 @@
+.fx-christmas-tree-root { overflow: hidden; }
+.fx-christmas-tree-scene { position: absolute; left: 50%; bottom: 1%; transform: translateX(-50%); transform-origin: 50% 100%; isolation: isolate; }
+.fx-christmas-tree-base, .fx-christmas-tree-plain { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 0; isolation: isolate; }
+.fx-christmas-tree-ornament { position: absolute; width: 11%; height: 8%; object-fit: contain; transform: translate(-50%, -50%); z-index: 2; }
+.fx-christmas-tree-ornament.is-plain { font-size: 1em; display: grid; place-items: center; line-height: 1; }
+.fx-christmas-tree-star { position: absolute; left: 50%; top: 1%; width: 22%; height: 15%; object-fit: contain; transform: translate(-50%, -50%); z-index: 3; }
+.fx-christmas-tree-star.is-plain { font-size: 2em; display: grid; place-items: center; line-height: 1; }
+.fx-christmas-tree-light { position: absolute; width: 1.5%; aspect-ratio: 1; border-radius: 50%; background: #fff3b5; box-shadow: 0 0 6px 2px #ffdc83; z-index: 1; animation: fx-christmas-tree-twinkle 2.3s ease-in-out infinite alternate; }
+@keyframes fx-christmas-tree-twinkle { from { opacity: .45; } to { opacity: 1; } }
+.fx-christmas-tree-plain i { position: absolute; left: 50%; top: calc(3% + var(--tier) * 13%); width: calc(25% + var(--tier) * 18%); height: 35%; transform: translateX(-50%); clip-path: polygon(50% 0,100% 100%,0 100%); background: linear-gradient(105deg,#4b8060,#164934 70%); z-index: calc(5 - var(--tier)); }
+.fx-christmas-tree-plain b { position: absolute; bottom: 3%; left: 44%; width: 12%; height: 19%; border-radius: 6px; background: #805139; }
+.fx-christmas-tree-gifts { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.fx-christmas-tree-gift { position: absolute; object-fit: contain; transform: translate(-50%, -50%); }
+.fx-christmas-tree-gift.is-plain { display: grid; place-items: center; line-height: 1; }
+.fx-christmas-tree-counter { position: absolute; left: 50%; bottom: .5%; transform: translateX(-50%); max-width: calc(100% - 16px); box-sizing: border-box; padding: 5px 12px; border: 1px solid #d8bd78; border-radius: 9px; background: #101b29e8; color: #fff5d6; font-family: sans-serif; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 2px #000; z-index: 5; pointer-events: none; }
+.fx-christmas-tree-counter[hidden] { display: none; }
+.fx-christmas-tree-counter > span { display: inline-block; }

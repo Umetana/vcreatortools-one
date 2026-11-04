@@ -1,0 +1,60 @@
+.v3-flash-layer { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; opacity: var(--flash-strength); }
+.v3-flash-glow { position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--flash-color); box-shadow: 0 0 8px var(--flash-color), 0 0 22px var(--flash-color), inset 0 0 10px var(--flash-color); }
+.v3-flash-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
+.v3-flash-band { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 32%, rgb(255 255 255 / 12%) 40%, rgb(255 255 255 / 85%) 50%, rgb(255 255 255 / 12%) 60%, transparent 68%); animation: v3-flash-sweep var(--flash-duration) ease-in-out infinite; }
+/* 細い白線が短時間で通過し、残りの周期は休止する。幅はカード幅に依存しない。 */
+.v3-flash-sweep { position: absolute; inset: 0; background: linear-gradient(105deg, transparent calc(50% - 12px), rgb(255 255 255 / 20%) calc(50% - 6px), white calc(50% - 1px), white calc(50% + 1px), rgb(255 255 255 / 20%) calc(50% + 6px), transparent calc(50% + 12px)); animation: v3-flash-scan var(--flash-duration) linear infinite; }
+@keyframes v3-flash-scan {
+  0%, 8% { transform: translateX(-110%); opacity: 0; }
+  10% { opacity: 1; }
+  28% { opacity: 1; }
+  30%, 100% { transform: translateX(110%); opacity: 0; }
+}
+@keyframes v3-flash-sweep {
+  0%, 12% { transform: translateX(-110%); opacity: 0; }
+  20% { opacity: 1; }
+  65% { opacity: 1; }
+  78%, 100% { transform: translateX(110%); opacity: 0; }
+}
+/* 枠の右上で大小が時間差で輝く。外側の光は許容し、操作を遮らない。 */
+.v3-flash-glints { position: absolute; inset: 0; border-radius: inherit; }
+.v3-flash-glint { position: absolute; fill: var(--flash-color); filter: drop-shadow(0 0 5px var(--flash-color)); opacity: 0; animation: v3-flash-glint var(--flash-duration) ease-in-out infinite; }
+.v3-flash-glint--large { width: 42px; height: 42px; top: -16px; right: 24px; }
+.v3-flash-glint--small { width: 23px; height: 23px; top: 15px; right: 7px; animation-delay: calc(var(--flash-duration) * .2); }
+.v3-flash-glint-core { fill: white; }
+/* 背景型Auroraだけを文字より後ろへ置く。その他の演出は従来の重なり。 */
+.v3-flash-background-layer { z-index: 0; }
+.cmt > .cmt__content, .cmt > .cmt__icon { position: relative; z-index: 1; }
+.v3-flash-aurora-background { position: absolute; inset: 0; border-radius: inherit; opacity: .85;
+  background: linear-gradient(135deg, var(--flash-color) 0%, color-mix(in srgb, var(--flash-color) 60%, white) 30%, color-mix(in srgb, var(--flash-color) 60%, black) 70%, var(--flash-color) 100%);
+  background-size: 300% 300%;
+  animation: v3-aurora-background calc(var(--flash-duration) * 2.6666667) ease-in-out infinite alternate, v3-aurora-hue calc(var(--flash-duration) * 4) ease-in-out infinite alternate;
+}
+@keyframes v3-aurora-background { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes v3-aurora-hue { from { filter: hue-rotate(-35deg); } to { filter: hue-rotate(35deg); } }
+/* 中央の本文を覆わず、縁の内外に幅のある光を重ねる。 */
+.v3-flash-aurora { position: absolute; inset: -12px; border-radius: 24px; padding: 20px; overflow: hidden;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.v3-flash-aurora-ribbon { position: absolute; inset: -15%;
+  background: radial-gradient(ellipse at 20% 30%, var(--flash-color), transparent 48%), radial-gradient(ellipse at 80% 70%, var(--flash-color), transparent 45%), linear-gradient(120deg, transparent 25%, rgb(255 255 255 / 70%) 48%, var(--flash-color) 55%, transparent 80%);
+  background-size: 180% 180%; filter: blur(7px);
+  animation: v3-flash-aurora var(--flash-duration) ease-in-out infinite;
+}
+@keyframes v3-flash-aurora {
+  0%, 100% { background-position: 0% 30%; transform: translate(-3%, -2%) scale(1); opacity: .55; }
+  50% { background-position: 100% 70%; transform: translate(3%, 2%) scale(1.06); opacity: 1; }
+}
+.v3-flash-trace { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* viewBoxを使わず、実寸の角丸矩形へ追従。周長を100として一周を揃える。 */
+.v3-flash-trace rect { x: 1px; y: 1px; width: calc(100% - 2px); height: calc(100% - 2px); rx: 11px; ry: 11px; fill: none; stroke-linecap: round; animation: v3-flash-trace var(--flash-duration) linear infinite; }
+.v3-flash-trace-halo { stroke: var(--flash-color); stroke-width: 6px; stroke-dasharray: 12 88; filter: drop-shadow(0 0 5px var(--flash-color)); }
+.v3-flash-trace-core { stroke: white; stroke-width: 2px; stroke-dasharray: 5 95; }
+@keyframes v3-flash-trace { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
+@keyframes v3-flash-glint {
+  0%, 48%, 100% { transform: scale(.15) rotate(-25deg); opacity: 0; }
+  18% { transform: scale(1.15) rotate(0deg); opacity: 1; }
+  28% { transform: scale(.85) rotate(12deg); opacity: .85; }
+  42% { transform: scale(.25) rotate(35deg); opacity: 0; }
+}

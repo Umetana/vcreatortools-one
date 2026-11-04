@@ -1,0 +1,23 @@
+/* ソース全域を座標に使う。カード中心を配置点にして見切れ・重なりを許容。 */
+.vct-comments.display-popup { padding: 0; display: block; }
+.display-popup .cmt-list { position: relative; width: 100%; height: 100%; max-width: none; display: block; }
+.display-popup .cmt-shell { position: absolute; margin: 0; max-width: none; transform: translate(-50%, -50%) scale(var(--popup-scale)); transform-origin: center; }
+.display-popup .cmt { box-sizing: border-box; width: 100%; }
+.popup-enter-active { animation: v3-popup-enter .38s both; }
+.popup-leave-active { transition: opacity .48s ease; pointer-events: none; }
+.popup-leave-to { opacity: 0; }
+@keyframes v3-popup-enter {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--popup-scale) * .72)) rotate(-2deg); }
+  78% { opacity: 1; transform: translate(-50%, -50%) scale(calc(var(--popup-scale) * 1.08)) rotate(1deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(var(--popup-scale)) rotate(0deg); }
+}
+
+/* カード全体を移動・拡縮し、本文だけを一行で省略する。 */
+.vct-comments.display-underbar { padding: 0; display: block; }
+.display-underbar .cmt-list { position: relative; width: 100%; height: 100%; max-width: none; display: block; }
+.display-underbar .cmt-shell { position: absolute; left: 0; bottom: var(--underbar-bottom); width: max-content; max-width: none; margin: 0; visibility: hidden; transform-origin: left bottom; }
+.display-underbar .cmt { width: max-content; min-width: 180px; max-width: var(--underbar-width); box-sizing: border-box; }
+.display-underbar .cmt-shell[data-underbar-state="active"] .cmt { width: 100%; }
+.display-underbar .cmt__content { width: max-content; }
+.display-underbar .cmt__header { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+.display-underbar .cmt__message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

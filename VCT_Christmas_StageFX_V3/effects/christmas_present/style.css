@@ -1,0 +1,17 @@
+.fx-christmas-present { pointer-events: none; overflow: hidden; }
+.fx-christmas-present-scene { position: absolute; left: 50%; top: 57%; }
+.fx-christmas-present-body, .fx-christmas-present-lid { position: absolute; width: 100%; height: 62.5%; overflow: hidden; }
+.fx-christmas-present-body { top: 31.6667%; z-index: 1; }
+.fx-christmas-present-lid { top: 9%; z-index: 3; transform-origin: 50% 80%; }
+.fx-christmas-present-body > img, .fx-christmas-present-lid > img { position: absolute; left: 0; width: 100%; height: 200%; }
+.fx-christmas-present-body > img { top: -100%; }
+.fx-christmas-present-lid > img { top: 0; }
+.fx-christmas-present-glow { position: absolute; left: 0; top: 15%; width: 100%; height: 80%; background: radial-gradient(ellipse, #fff5b4 0%, #ffdc7580 25%, #ffd35400 68%); z-index: 2; }
+.fx-christmas-present-particle { position: absolute; left: 50%; top: 48%; line-height: 1; z-index: 4; }
+.fx-christmas-present-particle > img { width: 100%; height: 100%; object-fit: contain; }
+.fx-christmas-present-fallback { display: none; }
+.fx-christmas-present-scene[data-mode="plain"] .fx-christmas-present-body > img,
+.fx-christmas-present-scene[data-mode="plain"] .fx-christmas-present-lid > img { display: none; }
+.fx-christmas-present-scene[data-mode="plain"] .fx-christmas-present-fallback { display: block; position: absolute; left: 10%; width: 80%; border: 2px solid #d8b34d; box-sizing: border-box; background: linear-gradient(90deg, #286344 42%, #bf333f 42% 58%, #286344 58%); }
+.fx-christmas-present-body > .fx-christmas-present-fallback { top: 22%; height: 64%; }
+.fx-christmas-present-lid > .fx-christmas-present-fallback { top: 65%; height: 25%; text-align: center; font-size: 40px; line-height: .2; }

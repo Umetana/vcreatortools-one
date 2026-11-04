@@ -3,8 +3,8 @@
   'use strict';
   const api = window.VCTStage;
   class EffectHost {
-    constructor({ container, backdrop, registry = api.registry, size = { width: 1920, height: 1080 }, maxRuntimeMs = 15000 }) {
-      Object.assign(this, { container, backdrop, registry, size });
+    constructor({ container, backdrop, registry = api.registry, size = { width: 1920, height: 1080 }, maxRuntimeMs = 15000, persistent = false }) {
+      Object.assign(this, { container, backdrop, registry, size, persistent });
       this.maxRuntimeMs = api.number(maxRuntimeMs, 10, 15000, 15000);
       this.active = new Map(); this.queue = []; this.serial = 0;
       this.disposed = false; this.stopping = false; this.draining = false;
@@ -24,6 +24,8 @@
       const reject = reason => ({ status: 'rejected', reason });
       if (this.disposed || this.stopping || !this.enabled) return reject('disabled');
       if (!this.registry.get(effectId)) return reject('unknown-effect');
+      if ((this.registry.get(effectId).manifest.lifecycle === 'persistent') !== this.persistent) return reject('wrong-lifecycle');
+      if (this.persistent && [...this.active.values()].some(record => record.effectId === effectId)) return reject('already-active');
       if (this.policy === 'ignore' && this.active.size) return reject('busy');
       let snapshot;
       try { snapshot = JSON.parse(JSON.stringify(params)); } catch { return reject('invalid-params'); }
@@ -42,9 +44,11 @@
       this.active.set(record.id, record);
       try {
         record.context = new api.EffectContext({ effectId: record.effectId, container: this.container, size: this.size, onComplete: () => this.finish(record) });
+        if (record.params.placement) record.context.place(record.params.placement);
+        if (this.persistent) record.context.setPaused(record.params.paused === true);
         record.instance = new EffectClass(record.context, record.params);
         const duration = api.number(record.params.duration, 100, 10000, 3000);
-        record.context.timers.setTimeout(() => this.finish(record), EffectClass.manifest.lifecycle === 'host' ? Math.min(duration, this.maxRuntimeMs) : this.maxRuntimeMs);
+        if (!this.persistent) record.context.timers.setTimeout(() => this.finish(record), EffectClass.manifest.lifecycle === 'host' ? Math.min(duration, this.maxRuntimeMs) : this.maxRuntimeMs);
         this.updateBackdrop();
         Promise.resolve(record.instance.start()).catch(error => {
           if (!record.finished) { console.error('[Stage] 演出の開始に失敗', error); this.finish(record); }
@@ -74,6 +78,21 @@
       const index = this.queue.findIndex(item => item.id === id);
       if (index < 0) return false;
       this.queue.splice(index, 1); return true;
+    }
+    update(id, params) {
+      const record = this.active.get(id);
+      if (!record || !this.persistent) return false;
+      try {
+        const snapshot = JSON.parse(JSON.stringify(params));
+        if (JSON.stringify(record.params) === JSON.stringify(snapshot)) return true;
+        record.params = snapshot;
+        record.context.place(snapshot.placement);
+        record.context.setPaused(snapshot.paused === true);
+        Promise.resolve(record.instance.update(snapshot)).catch(error => {
+          if (!record.finished) { record.context.logger.error(error); this.finish(record); }
+        });
+        return true;
+      } catch (error) { record.context.logger.error(error); this.finish(record); return false; }
     }
     stopAll() {
       this.stopping = true; this.queue.length = 0;

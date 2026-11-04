@@ -1,0 +1,11 @@
+.fx-christmas-snow { overflow: hidden; pointer-events: none; }
+.fx-christmas-snow > i {
+  position: absolute; top: -12px; display: block; border-radius: 50%;
+  background: #f4f9ff; box-shadow: 0 0 3px #e1f0ff80;
+  animation: fx-christmas-snow-fall linear infinite;
+}
+@keyframes fx-christmas-snow-fall {
+  0% { top: -12px; transform: translateX(-10px); }
+  50% { transform: translateX(12px); }
+  100% { top: calc(100% + 12px); transform: translateX(-10px); }
+}

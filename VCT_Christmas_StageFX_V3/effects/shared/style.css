@@ -1,0 +1,12 @@
+/* 描画先の外へスタイルを広げない。SVG・紙片は外部素材を使わない。 */
+.fx-celebration-root { pointer-events: none; }
+.fx-celebration-root .fx-celebration-particle { position: absolute; display: block; opacity: 0; transform-origin: center; }
+.fx-celebration-root svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.fx-celebration-heart svg { filter: drop-shadow(0 0 7px currentColor); }
+
+.fx-celebration-stars svg { position: relative; filter: drop-shadow(0 0 5px currentColor); }
+.fx-celebration-tail-direction { position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; transform-origin: 0 0; }
+.fx-celebration-tail { position: absolute; width: 260%; height: 20%; transform: translate(-100%,-50%); background: linear-gradient(to right,transparent,currentColor); clip-path: polygon(0 50%,100% 0,100% 100%); opacity: .7; }
+.fx-celebration-confetti { border-radius: 1px; backface-visibility: visible; box-shadow: inset 0 1px 0 #ffffff60; }
+
+.fx-celebration-sparkle svg { filter: drop-shadow(0 0 6px currentColor); }

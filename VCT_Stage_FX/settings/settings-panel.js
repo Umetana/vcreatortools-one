@@ -17,24 +17,52 @@
   let panelCollapsed = false;
   let activeTab = 'placement', tabBar, placementPresets;
   let placementEditing = false, placementOverlay, editButton, placementEditor;
+  // 編集対象だけをUI状態として記憶し、演出の設定値とは分離する。
+  const placementTargetKey = `${runtime.storageKey}.placement-target`;
+  const defaultPlacementTarget = () => window.VCTStage.registry.get(runtime.effective.STAGE_EFFECT_ID) ? runtime.effective.STAGE_EFFECT_ID : 'sample_effect';
+  let placementTarget = defaultPlacementTarget(), editorTarget = null;
+  try {
+    const saved = window.localStorage.getItem(placementTargetKey);
+    if (window.VCTStage.registry.get(saved)) placementTarget = saved;
+  } catch (_) {}
+  const placementKeys = () => activeTab === 'effectPlacement'
+    ? Object.fromEntries(['X','Y','WIDTH','HEIGHT','SCALE'].map(name => [name.toLowerCase(), window.VCTStage.effectKey(placementTarget, name)]))
+    : { x:'COMMENT_X', y:'COMMENT_Y', width:'COMMENT_WIDTH', height:'COMMENT_HEIGHT', scale:'COMMENT_SCALE' };
+  const placementValue = () => Object.fromEntries(Object.entries(placementKeys()).map(([name, key]) => [name, draft[key]]));
   const endDrag = () => placementEditor?.end();
   const syncPlacementEditor = () => {
     if (!placementOverlay) return;
-    const unavailable = draft.DISPLAY_MODE === 'underbar' || (draft.DISPLAY_MODE === 'popup' && draft.POPUP_PLACEMENT !== 'anchor');
-    if (unavailable || activeTab !== 'placement' || root.hidden) placementEditing = false;
+    const effectMode = activeTab === 'effectPlacement';
+    const unavailable = !effectMode && (draft.DISPLAY_MODE === 'underbar' || (draft.DISPLAY_MODE === 'popup' && draft.POPUP_PLACEMENT !== 'anchor'));
+    if (unavailable || !['placement', 'effectPlacement'].includes(activeTab) || root.hidden) placementEditing = false;
+    const target = effectMode ? placementTarget : 'comments';
+    if (editorTarget !== target) {
+      placementEditor?.destroy();
+      const keys = placementKeys();
+      const fields = effectMode ? schema[`layout:${placementTarget}`]?.fields : schema.comments.fields;
+      if (!fields) return;
+      placementEditor = window.VCTPlacementEditor.create({ element: placementOverlay,
+        getCanvasRect: () => document.getElementById('stage').getBoundingClientRect(), canvasWidth: 1920, canvasHeight: 1080,
+        limits: Object.fromEntries(Object.entries(keys).map(([name,key]) => [name, [fields[key].min, fields[key].max, runtime.baseline[key]]])),
+        value: placementValue(), onChange: (value, changed) => { for (const name of changed) setPlacementValue(keys[name], value[name]); }
+      });
+      editorTarget = target;
+    }
     editButton.disabled = unavailable;
     editButton.setAttribute('aria-pressed', String(placementEditing));
     editButton.textContent = placementEditing ? 'マウス配置を終了' : 'マウスで配置調整';
     placementOverlay.hidden = !placementEditing;
-    placementEditor?.setValue({x:draft.COMMENT_X,y:draft.COMMENT_Y,width:draft.COMMENT_WIDTH,height:draft.COMMENT_HEIGHT,scale:draft.COMMENT_SCALE});
+    const value = placementValue();
+    placementOverlay.textContent = `${effectMode ? window.VCTStage.registry.get(placementTarget)?.manifest.name : 'コメント領域'}：ドラッグで移動／ホイールで倍率`;
+    placementEditor?.setValue(value);
     placementEditor?.setEnabled(placementEditing);
     if (!placementEditing) { endDrag(); return; }
     const rect = document.getElementById('stage').getBoundingClientRect();
     const scale = rect.width / 1920;
     Object.assign(placementOverlay.style, {
-      left: (rect.left + draft.COMMENT_X * scale) + 'px', top: (rect.top + draft.COMMENT_Y * scale) + 'px',
-      width: (draft.COMMENT_WIDTH * draft.COMMENT_SCALE * scale) + 'px',
-      height: (draft.COMMENT_HEIGHT * draft.COMMENT_SCALE * scale) + 'px'
+      left: (rect.left + value.x * scale) + 'px', top: (rect.top + value.y * scale) + 'px',
+      width: (value.width * value.scale * scale) + 'px',
+      height: (value.height * value.scale * scale) + 'px'
     });
   };
   // 既存の数値入力を経由し、丸め・下書き・保存・取消を一本化する。
@@ -43,7 +71,7 @@
     input.value = value;
     input.dispatchEvent(new Event('change', { bubbles: true }));
   };
-  const tabs = { stage: 'ステージ', placement: 'コメント配置', display: 'コメント表示', decoration: 'コメント装飾', effects: '画面演出' };
+  const tabs = { stage: 'ステージ', placement: 'コメント配置', display: 'コメント表示', decoration: 'コメント装飾', effects: '画面演出', effectPlacement: '演出配置' };
   const updateVisibility = () => {
     syncPlacementEditor();
     const fullscreen = draft.DISPLAY_MODE === 'underbar' || (draft.DISPLAY_MODE === 'popup' && draft.POPUP_PLACEMENT !== 'anchor');
@@ -52,10 +80,11 @@
       field.classList.toggle('is-disabled', fullscreen);
       field.querySelectorAll('input').forEach(input => { input.disabled = fullscreen; });
     });
-    placementPresets?.querySelectorAll('button').forEach(button => { button.disabled = fullscreen; });
+    placementPresets?.querySelectorAll('button').forEach(button => { button.disabled = activeTab === 'placement' && fullscreen; });
     controls.querySelectorAll('[data-section]').forEach(group => {
       const section = schema[group.dataset.section];
-      group.hidden = section.tab !== activeTab || (!!section.effect && section.effect !== draft.COMMENT_EFFECT) || (!!section.display && section.display !== draft.DISPLAY_MODE) || (!!section.plugin && section.plugin !== draft.STAGE_EFFECT_ID);
+      if (!section) return;
+      group.hidden = section.tab !== activeTab || (!!section.effect && section.effect !== draft.COMMENT_EFFECT) || (!!section.display && section.display !== draft.DISPLAY_MODE) || (!!section.plugin && !section.layoutPlugin && section.plugin !== draft.STAGE_EFFECT_ID) || (!!section.layoutPlugin && section.layoutPlugin !== placementTarget);
       group.querySelectorAll('[data-config-field]').forEach(field => {
         const key = field.dataset.configField;
         const ticker = ['UNDERBAR_SPEED','UNDERBAR_QUEUE','UNDERBAR_LANES','UNDERBAR_LANE_MODE','UNDERBAR_LANE_GAP'];
@@ -67,9 +96,13 @@
     if (note) note.textContent = draft.DISPLAY_MODE === 'underbar' || (draft.DISPLAY_MODE === 'popup' && draft.POPUP_PLACEMENT !== 'anchor')
       ? '現在はステージ全面を使用しています。下の指定領域の数値は保持され、縦積み・ポップアップ基準位置に戻すと適用されます。'
       : '縦積み・ポップアップ基準位置で使う領域です。全面表示へ切り替えても数値は保持されます。';
+    const targets = controls.querySelector('[data-placement-targets]'); if (targets) targets.hidden = activeTab !== 'effectPlacement';
     const manager = controls.querySelector('.vct-effect-manager'); if (manager) manager.hidden = activeTab !== 'effects';
     tabBar?.querySelectorAll('[role="tab"]').forEach(button => button.setAttribute('aria-selected', String(button.dataset.tab === activeTab)));
-    root.querySelector('.vct-settings-placement-presets')?.toggleAttribute('hidden', activeTab !== 'placement');
+    const toolsParent = controls.querySelector(activeTab === 'effectPlacement' ? '[data-placement-targets]' : '[data-section="comments"]');
+    if (toolsParent && placementPresets && placementPresets.parentElement !== toolsParent) toolsParent.append(placementPresets);
+    placementPresets?.toggleAttribute('hidden', !['placement','effectPlacement'].includes(activeTab));
+    placementPresets?.querySelectorAll('button').forEach(button => { if (button !== editButton) button.hidden = activeTab === 'effectPlacement'; });
   };
 
   try {
@@ -281,6 +314,23 @@
     if (!window.VCTStage.registry.get(draft.STAGE_EFFECT_ID)) draft.STAGE_EFFECT_ID = 'sample_effect';
     controls.replaceChildren();
     renderEffectManager();
+    if (!window.VCTStage.registry.get(placementTarget)) placementTarget = defaultPlacementTarget();
+    const targetGroup = document.createElement('section'); targetGroup.dataset.placementTargets = '';
+    const targetLabel = document.createElement('label'); targetLabel.className = 'vct-settings-field';
+    const targetTitle = document.createElement('span'); targetTitle.textContent = '配置する演出'; targetLabel.append(targetTitle);
+    const targetSelect = document.createElement('select'); targetSelect.setAttribute('aria-label', '配置する演出');
+    for (const [id, Effect] of window.VCTStage.registry.effects) {
+      const option = document.createElement('option'); option.value = id;
+      option.textContent = `${Effect.manifest.name}${Effect.manifest.lifecycle === 'persistent' ? '（常設）' : ''}`;
+      option.selected = id === placementTarget; targetSelect.append(option);
+    }
+    targetSelect.addEventListener('change', () => {
+      endDrag(); placementEditing = false; placementTarget = targetSelect.value; updateVisibility();
+      try { window.localStorage.setItem(placementTargetKey, placementTarget); }
+      catch (_) { setStatus('配置対象は切り替えましたが、次回起動用の選択を保存できませんでした。', true); }
+    });
+    const targetRow = document.createElement('span'); targetRow.className = 'vct-settings-input-row'; targetRow.append(targetSelect);
+    targetLabel.append(targetRow); targetGroup.append(targetLabel); controls.append(targetGroup);
     for (const [sectionId, section] of Object.entries(schema)) {
       const group = document.createElement('section');
       group.className = 'vct-settings-section';
@@ -491,9 +541,11 @@
       previewTools.append(
         createButton('コメントを試す', 'is-secondary', () => previewApi.comment()),
         createButton('演出を試す', 'is-secondary', () => {
-          const result = previewApi.effect();
+          const result = previewApi.effect(activeTab === 'effectPlacement' ? placementTarget : undefined);
           const labels = { started: '演出を開始しました', queued: '演出を待機に追加しました' };
           const reasons = {
+            'plugin-off': 'この演出は個別設定でOFFになっています。',
+            'wrong-lifecycle': '常設演出は個別のONで表示します。一時停止中は「常設の動きを再開」を使ってください。',
             'effects-off': 'イベント演出がOFFのため再生しませんでした。',
             'reduced-motion': 'テンプレートの「動きを抑える」がONのため再生しませんでした。',
             'page-hidden': 'ページが非表示のため再生しませんでした。',
@@ -508,6 +560,7 @@
         }),
         createButton('直前の演出を停止', 'is-secondary', () => previewApi.stopLast()),
         createButton('画面演出を全停止', 'is-secondary', () => previewApi.stopAll()),
+        createButton('常設の動きを再開', 'is-secondary', () => { previewApi.resumeAmbient(); setStatus('常設演出の動きを再開しました。動き抑制中は停止を維持します。'); }),
         createButton('状態を確認', 'is-secondary', () => setStatus(previewApi.status()))
       );
       tools.appendChild(previewTools);
@@ -571,15 +624,9 @@
     placementOverlay.className = 'vct-placement-editor';
     placementOverlay.hidden = true;
     placementOverlay.textContent = 'コメント領域：ドラッグで移動／ホイールで倍率';
-    const keys={x:'COMMENT_X',y:'COMMENT_Y',width:'COMMENT_WIDTH',height:'COMMENT_HEIGHT',scale:'COMMENT_SCALE'};
-    placementEditor=window.VCTPlacementEditor.create({element:placementOverlay,getCanvasRect:()=>document.getElementById('stage').getBoundingClientRect(),canvasWidth:1920,canvasHeight:1080,
-      limits:Object.fromEntries(Object.entries(keys).map(([name,key])=>{const field=schema.comments.fields[key];return [name,[field.min,field.max,runtime.baseline[key]]];})),
-      value:{x:draft.COMMENT_X,y:draft.COMMENT_Y,width:draft.COMMENT_WIDTH,height:draft.COMMENT_HEIGHT,scale:draft.COMMENT_SCALE},
-      onChange:(value,changed)=>{for(const name of changed)setPlacementValue(keys[name],value[name]);}
-    });
     window.addEventListener('resize', () => { endDrag(); syncPlacementEditor(); });
     window.addEventListener('blur', endDrag);
-    window.addEventListener('pagehide', () => { placementEditing = false; syncPlacementEditor(); });
+    window.addEventListener('pagehide', () => { placementEditing = false; syncPlacementEditor(); placementEditor?.destroy(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) { placementEditing = false; syncPlacementEditor(); } });
     root.append(backdrop, placementOverlay, panel);
     document.body.appendChild(root);

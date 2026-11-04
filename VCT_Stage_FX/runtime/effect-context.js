@@ -10,6 +10,7 @@
       this.signal = this.controller.signal;
       this.disposed = false;
       this.timerIds = new Set();
+      this.paused = false;
       this.handles = new Set();
       this.cleanups = new Set();
       this.root = document.createElement('div');
@@ -30,15 +31,20 @@
     }
     setTimeout(callback, delay) {
       if (this.disposed) return null;
-      const id = setTimeout(() => {
-        this.timerIds.delete(id);
-        if (this.disposed) return;
-        try { callback(); } catch (error) { this.logger.error(error); this.complete(); }
-      }, delay);
+      const id = { remaining: Math.max(0, Number(delay) || 0), callback };
       this.timerIds.add(id);
+      if (!this.paused) this.armTimer(id);
       return id;
     }
-    clearTimeout(id) { clearTimeout(id); this.timerIds.delete(id); }
+    armTimer(id) {
+      id.started = Date.now();
+      id.handle = setTimeout(() => {
+        this.timerIds.delete(id);
+        if (this.disposed) return;
+        try { id.callback(); } catch (error) { this.logger.error(error); this.complete(); }
+      }, id.remaining);
+    }
+    clearTimeout(id) { if (id) clearTimeout(id.handle); this.timerIds.delete(id); }
     wait(delay) {
       if (this.disposed) return Promise.resolve(false);
       return new Promise(resolve => {
@@ -52,6 +58,7 @@
       if (this.disposed) return null;
       const animation = element.animate(frames, options);
       this.handles.add(animation);
+      if (this.paused) { animation.pause(); animation.stagePaused = true; }
       // fill状態を含め終了時にcancelするため、Host終了まで所有する。
       return animation;
     }
@@ -77,11 +84,33 @@
       });
     }
     complete() { if (!this.disposed) this.onComplete(); }
+    setPaused(paused) {
+      if (this.disposed || this.paused === paused) return;
+      this.paused = paused;
+      this.root.classList?.toggle('stage-effect-paused', paused);
+      for (const timer of this.timerIds) {
+        if (paused) { clearTimeout(timer.handle); timer.remaining = Math.max(0, timer.remaining - (Date.now() - timer.started)); }
+        else this.armTimer(timer);
+      }
+      for (const handle of this.handles) {
+        if (paused && handle.playState !== 'finished') { handle.pause(); handle.stagePaused = true; }
+        else if (!paused && handle.stagePaused) { handle.play(); handle.stagePaused = false; }
+      }
+    }
+    place(placement = {}) {
+      const number = window.VCTStage.number;
+      this.size = { width: number(placement.width, 40, 1920, 1920), height: number(placement.height, 40, 1080, 1080) };
+      Object.assign(this.root.style, {
+        inset: 'auto', left: `${number(placement.x, 0, 1920, 0)}px`, top: `${number(placement.y, 0, 1080, 0)}px`,
+        width: `${this.size.width}px`, height: `${this.size.height}px`,
+        transformOrigin: 'top left', transform: `scale(${number(placement.scale, .1, 3, 1)})`
+      });
+    }
     dispose() {
       if (this.disposed) return;
       this.disposed = true;
       this.controller.abort();
-      this.timerIds.forEach(id => clearTimeout(id)); this.timerIds.clear();
+      this.timerIds.forEach(id => clearTimeout(id.handle)); this.timerIds.clear();
       this.handles.forEach(handle => { try { handle.cancel(); } catch (error) { this.logger.warn(error); } }); this.handles.clear();
       this.cleanups.forEach(callback => { try { callback(); } catch (error) { this.logger.warn(error); } }); this.cleanups.clear();
       this.root.remove();

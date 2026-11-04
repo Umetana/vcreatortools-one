@@ -40,6 +40,16 @@ VCTStage.registry.register('my_effect', MyEffect);
 
 `lifecycle: 'host'` はparams.durationで終了、`'effect'` はcomplete()で終了します。いずれも15秒で強制終了します。start()のPromise解決は終了ではありません。constructorは参照の保持・設定整形のみとし、開始と終了通知を行わないでください。
 
+### 常設演出と個別配置
+
+`lifecycle: 'persistent'` は常設用で、start／destroyに加えてupdate(params)が必須です。明示的に有効にすると、単発と別枠で起動します（最大4種類・同じIDは1つ）。時間で終了しません。既存の単発Pluginをそのまま常設指定に変えず、停止・設定更新・長時間運用に対応させてください。
+
+各Pluginへ共通の配置・ON/OFF・強度設定を自動追加します。`STAGE_PLUGIN_` は予約接頭辞のためmanifest.settingsへ宣言しません。Context.rootはHost側で配置・拡縮し、Context.sizeは領域内の論理寸法です。Plugin内で画面全体の座標を再適用しないでください。単発は発火時、常設はupdate時に個別配置を適用します。
+
+常設にはparams.pausedが渡されます。全停止・動き抑制・ページ非表示ではインスタンスとDOMを維持し、Context管理のタイマー、Web Animations、CSSアニメーションを一時停止します。タイマーは残時間から再開します。独自のループやCSS transitionはupdateで停止・再開してください。初期起動時からpausedの場合もあります。updateで表示や進行を初期化せず、変更した設定と停止状態を反映します。個別OFFやページ破棄ではdestroyされ、再ONは新規起動です。基盤は進行データを保存しません。
+
+常設は長時間残るため、DOM・タイマー・アニメーションを上限なく追加し続けないでください。要素を再利用し、独自に確保した資源はdestroyで解放します。既存同様、SDK購読は本体に集約します。コメントに応じた進行ルールは派生側で別途設計します。
+
 Hostは正常終了・停止・例外を同じ後片づけへ集約し、destroyとContext破棄を一度だけ実行します。Pluginからdestroyを直接呼ばずcompleteを使います。
 
 ## パラメータと接続

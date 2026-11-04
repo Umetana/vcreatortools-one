@@ -9,7 +9,8 @@ function validate(value) {
  const result={};
  for(const key of Object.keys(value)) if(!Object.hasOwn(definition.defaults,key)) throw new Error('非対応の設定項目: '+key);
  for(const [key,fallback] of Object.entries(definition.defaults)) {
-  const v=value[key],field=fields[key]||{};
+  // 個別配置の追加前に保存された共有設定は、その項目だけ初期値で補う。
+  const v=value[key]===undefined && key.startsWith('STAGE_PLUGIN_') ? fallback : value[key],field=fields[key]||{};
   if(typeof v!==typeof fallback || (typeof v==='number' && !Number.isFinite(v))) throw new Error('設定値の型が不正です: '+key);
   if(typeof v==='number' && (v<(field.min??0) || v>(field.max??1000000))) throw new Error('設定値が範囲外です: '+key);
   if(field.options && !field.options.includes(v)) throw new Error('選択値が不正です: '+key);

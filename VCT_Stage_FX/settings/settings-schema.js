@@ -29,20 +29,23 @@ window.VCT_SETTINGS_SCHEMA = {
 };
 window.VCT_REFRESH_EFFECT_SCHEMA = () => {
   const schema = window.VCT_SETTINGS_SCHEMA;
-  for (const key of Object.keys(schema)) if (key.startsWith('plugin:')) delete schema[key];
+  for (const key of Object.keys(schema)) if (key.startsWith('plugin:') || key.startsWith('layout:')) delete schema[key];
   const choices = schema.effects.fields.STAGE_EFFECT_ID;
   choices.options = []; choices.labels = {};
   for (const [id, Effect] of window.VCTStage.registry.effects) {
-    choices.options.push(id); choices.labels[id] = Effect.manifest.name;
+    if (Effect.manifest.lifecycle !== 'persistent') { choices.options.push(id); choices.labels[id] = Effect.manifest.name; }
+    schema[`layout:${id}`] = { title: `${Effect.manifest.name}の配置・強度`, tab: 'effectPlacement', layoutPlugin: id, plugin: id,
+      fields: Object.fromEntries(Object.entries(window.VCTStage.effectFields(id, Effect)).filter(([key]) => key.startsWith('STAGE_PLUGIN_'))) };
     if (Effect.manifest.settings) schema[`plugin:${id}`] = {
       title: `${Effect.manifest.name}の設定${Effect.manifest.assetDisclosure === 'ai-generated' ? '（AI生成画像を同梱）' : ''}`,
-      tab: 'effects', plugin: id, fields: Effect.manifest.settings
+      tab: Effect.manifest.lifecycle === 'persistent' ? 'effectPlacement' : 'effects',
+      ...(Effect.manifest.lifecycle === 'persistent' ? { layoutPlugin: id } : { plugin: id }), fields: Effect.manifest.settings
     };
   }
 };
 window.VCT_REFRESH_EFFECT_SCHEMA();
 
 for (const [id, section] of Object.entries(window.VCT_SETTINGS_SCHEMA)) {
-  section.tab = id === 'stage' ? 'stage' : id === 'comments' ? 'placement' : id === 'effects' || id.startsWith('plugin:') ? 'effects' : ['effect','heart','flash','stars'].includes(id) ? 'decoration' : 'display';
+  section.tab = section.tab || (id === 'stage' ? 'stage' : id === 'comments' ? 'placement' : id === 'effects' ? 'effects' : ['effect','heart','flash','stars'].includes(id) ? 'decoration' : 'display');
 }
 window.VCT_SETTINGS_SCHEMA.general.display = 'stack';

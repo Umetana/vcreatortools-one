@@ -1,0 +1,27 @@
+.fx-christmas-comment-frame { position: absolute; overflow: hidden; transform-origin: top left; pointer-events: none; }
+.fx-christmas-comment-frame[hidden] { display: none; }
+.fx-christmas-comment-frame-backplate { position: absolute; overflow: hidden; transform-origin: top left; pointer-events: none; }
+.fx-christmas-comment-frame-backplate[hidden] { display: none; }
+.fx-christmas-comment-frame-fill { position: absolute; inset: 10px; border-radius: 12px; }
+.fx-christmas-comment-frame-line { position: absolute; inset: 10px; border: 2px solid #dbba71c9; border-radius: 12px; box-shadow: 0 0 0 2px #254e3ac9, inset 0 0 0 2px #254e3ac9; }
+.fx-christmas-comment-frame-edge { position: absolute; display: block; border-radius: 2px; }
+.fx-christmas-comment-frame-edge.is-top, .fx-christmas-comment-frame-edge.is-bottom {
+  left: calc(var(--frame-corner-size) * .65); right: calc(var(--frame-corner-size) * .65); height: 4px;
+  background: repeating-linear-gradient(90deg, #326548 0 12px, #d8b46e 12px 14px, #326548 14px 24px, #b34246 24px 28px);
+}
+.fx-christmas-comment-frame-edge.is-top { top: 10px; }
+.fx-christmas-comment-frame-edge.is-bottom { bottom: 10px; }
+.fx-christmas-comment-frame-edge.is-left, .fx-christmas-comment-frame-edge.is-right {
+  top: calc(var(--frame-corner-size) * .65); bottom: calc(var(--frame-corner-size) * .65); width: 4px;
+  background: repeating-linear-gradient(#326548 0 12px, #d8b46e 12px 14px, #326548 14px 24px, #b34246 24px 28px);
+}
+.fx-christmas-comment-frame-edge.is-left { left: 10px; }
+.fx-christmas-comment-frame-edge.is-right { right: 10px; }
+.fx-christmas-comment-frame-corner { position: absolute; width: var(--frame-corner-size); height: var(--frame-corner-size); object-fit: contain; }
+.fx-christmas-comment-frame-corner.is-tl { top: 0; left: 0; }
+.fx-christmas-comment-frame-corner.is-tr { top: 0; right: 0; transform: scaleX(-1); }
+.fx-christmas-comment-frame-corner.is-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.fx-christmas-comment-frame-corner.is-br { bottom: 0; right: 0; transform: scale(-1); }
+.fx-christmas-comment-frame[data-mode="plain"] .fx-christmas-comment-frame-corner {
+  display: grid; place-items: center; font-size: calc(var(--frame-corner-size) * .5); line-height: 1; transform: none;
+}

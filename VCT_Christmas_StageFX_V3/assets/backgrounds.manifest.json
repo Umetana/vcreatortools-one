@@ -1,0 +1,12 @@
+{
+  "assetDisclosure": "ai-generated",
+  "generator": "OpenAI imagegen",
+  "createdAt": "2026-11-01",
+  "license": "MIT",
+  "reference": "tree-base-v1.png（本プロジェクトのAI生成素材を画風の参照に使用）",
+  "assets": [
+    { "id": "forest", "file": "background-forest-v1.png", "name": "雪の森と遠くの灯り", "width": 1672, "height": 941 },
+    { "id": "fireplace", "file": "background-fireplace-v1.png", "name": "暖炉のある部屋", "width": 1672, "height": 941 },
+    { "id": "night", "file": "background-night-v1.png", "name": "静かな冬の夜空", "width": 1672, "height": 941 }
+  ]
+}

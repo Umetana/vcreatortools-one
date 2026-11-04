@@ -55,3 +55,18 @@ test('fileは標準、不正IDは警告付き標準、境界・大文字を区�
   assert.equal(open(url + '?profile=' + 'a'.repeat(64)).runtime.profileId.length, 64);
   assert.notEqual(open(url + '?profile=A').runtime.storageKey, open(url + '?profile=a').runtime.storageKey);
 });
+
+test('個別配置追加前の共有設定を読め、新しい配置・強度も検証対象になる', () => {
+  const contract = require('../settings/vct-contract.js');
+  const old = Object.fromEntries(Object.entries(contract.defaults).filter(([key]) => !key.startsWith('STAGE_PLUGIN_')));
+  const restored = contract.validate(old);
+  assert.equal(restored.STAGE_PLUGIN_heart_effect_SCALE, 1);
+  assert.equal(restored.STAGE_PLUGIN_heart_effect_ENABLED, true);
+  const next = contract.validate({ ...restored, STAGE_PLUGIN_heart_effect_X: 345, STAGE_PLUGIN_heart_effect_INTENSITY: 'small' });
+  assert.equal(next.STAGE_PLUGIN_heart_effect_X, 345);
+  assert.equal(next.STAGE_PLUGIN_heart_effect_INTENSITY, 'small');
+  assert.throws(() => contract.validate({ ...next, STAGE_PLUGIN_heart_effect_SCALE: 9 }));
+  assert.throws(() => contract.validate({ ...next, STAGE_PLUGIN_heart_effect_ENABLED: 'false' }));
+  assert.throws(() => contract.validate({ ...next, STAGE_PLUGIN_heart_effect_INTENSITY: 'unknown' }));
+  delete old.FONT_SIZE; assert.throws(() => contract.validate(old));
+});

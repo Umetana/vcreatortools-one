@@ -1,0 +1,13 @@
+/* カード全体へ重ねる。はみ出しは許容し、対話操作を遮らない。 */
+.v3-heart-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; overflow: visible; }
+.v3-heart-particle {
+  position: absolute; height: auto; aspect-ratio: 1; fill: currentColor;
+  filter: drop-shadow(0 1px 2px rgb(90 0 25 / 25%));
+  animation: v3-heart-drift 2.5s linear infinite;
+}
+@keyframes v3-heart-drift {
+  0% { transform: translate(-50%, calc(-50% + 10px)) rotate(var(--heart-tilt)) scale(.45); opacity: 0; }
+  18% { opacity: .9; }
+  75% { opacity: .9; }
+  100% { transform: translate(calc(-50% + var(--heart-drift)), calc(-50% - var(--heart-rise))) rotate(calc(var(--heart-tilt) + var(--heart-spin))) scale(1.2); opacity: 0; }
+}
