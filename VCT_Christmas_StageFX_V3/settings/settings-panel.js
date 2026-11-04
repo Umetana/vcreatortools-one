@@ -362,16 +362,16 @@
       const heading = document.createElement('h3'); heading.textContent = 'ツリーの成長確認';
       const help = document.createElement('p'); help.textContent = '通常コメントは1P。支援は基準×1・2・3・5を加算し、本文付きならさらに1Pです。ギフト飾りは別に残ります。上限を下げて保存すると、古い飾りから整理します。';
       const status = document.createElement('p'); status.dataset.treeStatus = ''; status.textContent = window.VCT_STAGE_PREVIEW.treeStatus();
-      const confirm = document.createElement('div'); confirm.hidden = true;
-      const question = document.createElement('p'); question.textContent = '保存済みのポイントとギフト飾りを0に戻します。設定を閉じても取り消せません。リセットしますか？';
-      confirm.append(question,
-        createButton('リセットを実行', 'is-primary', () => { window.VCT_STAGE_PREVIEW.treeReset(); confirm.hidden = true; setStatus('保存済みのツリーの成長をリセットしました。'); }),
-        createButton('リセットを取消', 'is-secondary', () => { confirm.hidden = true; }));
       tools.append(heading, help, status,
         createButton('成長を試す（保存しない）', 'is-secondary', () => { window.VCT_STAGE_PREVIEW.treeTest(); }),
         createButton('ギフト飾りを試す（保存しない）', 'is-secondary', () => { window.VCT_STAGE_PREVIEW.treeGiftTest(); }),
         createButton('実際の成長に戻す', 'is-secondary', () => { window.VCT_STAGE_PREVIEW.treeEndTest(); }),
-        createButton('ツリーの成長をリセット', 'is-secondary', () => { confirm.hidden = false; }), confirm);
+        createButton('ツリーの成長をリセット', 'is-secondary', () => requestConfirmation({
+          title: 'ツリーの成長リセット',
+          message: '保存済みのポイントとギフト飾りを0に戻します。表示・配置などの設定は残ります。この操作は取り消せません。',
+          confirmLabel: 'ツリーをリセットする', cancelLabel: 'リセットを取消',
+          execute: () => { window.VCT_STAGE_PREVIEW.treeReset(); setStatus('保存済みのツリーの成長をリセットしました。'); }
+        })));
       controls.append(tools);
     }
     updateVisibility();
@@ -420,6 +420,45 @@
     button.textContent = label;
     button.addEventListener('click', handler);
     return button;
+  };
+
+
+  // OBS内で使える確認UI。背後のフッターや設定項目への誤操作を防ぐ。
+  let cancelConfirmation = null;
+  const requestConfirmation = ({ title, message, confirmLabel, cancelLabel, execute }) => {
+    if (cancelConfirmation) return;
+    const previousFocus = document.activeElement;
+    const background = [...root.children].map(element => [element, element.inert]);
+    background.forEach(([element]) => { element.inert = true; });
+    const overlay = document.createElement('div'); overlay.className = 'vct-settings-confirm-overlay';
+    const dialog = document.createElement('section'); dialog.className = 'vct-settings-confirm-dialog';
+    dialog.setAttribute('role', 'alertdialog'); dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'vct-confirm-title'); dialog.setAttribute('aria-describedby', 'vct-confirm-message');
+    const heading = document.createElement('h3'); heading.id = 'vct-confirm-title'; heading.textContent = title;
+    const description = document.createElement('p'); description.id = 'vct-confirm-message'; description.textContent = message;
+    const error = document.createElement('p'); error.className = 'vct-settings-confirm-error'; error.setAttribute('role', 'status');
+    const finish = () => {
+      overlay.remove(); background.forEach(([element, inert]) => { element.inert = inert; });
+      cancelConfirmation = null;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+    cancelConfirmation = finish;
+    const cancel = createButton(cancelLabel, 'is-secondary', finish);
+    const confirm = createButton(confirmLabel, 'is-danger', () => {
+      if (confirm.disabled) return;
+      confirm.disabled = true;
+      try { execute(); finish(); }
+      catch (_) { error.textContent = '処理を完了できませんでした。保存状態を確認してから再度お試しください。'; confirm.disabled = false; }
+    });
+    const actions = document.createElement('div'); actions.className = 'vct-settings-confirm-actions'; actions.append(cancel, confirm);
+    dialog.append(heading, description, error, actions); overlay.append(dialog); root.append(overlay);
+    overlay.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finish(); }
+      else if (event.key === 'Tab') {
+        event.preventDefault(); (document.activeElement === cancel ? confirm : cancel).focus();
+      }
+    });
+    cancel.focus({ preventScroll: true });
   };
 
   const updatePanelUi = () => {
@@ -496,7 +535,7 @@
     sourceText.className = 'vct-settings-source';
     const versionText = document.createElement('p');
     versionText.className = 'vct-settings-version';
-    versionText.textContent = 'VCT Christmas Stage FX V3 · 0.1.0（開発版）';
+    versionText.textContent = 'VCT Christmas Stage FX V3 · 0.2.0（開発版）';
     headingWrap.append(heading, versionText, sourceText);
     const closeButton = createButton('\u00d7', 'vct-settings-close', close);
     closeButton.title = '閉じる';
@@ -621,11 +660,12 @@
 
     const footer = document.createElement('footer');
     footer.append(
-      createButton('ローカル設定を削除', 'is-danger', () => {
-        runtime.clearLocal();
-        runtime.broadcastReload?.('settings-cleared');
-        window.location.reload();
-      }),
+      createButton('ローカル設定を削除', 'is-danger', () => requestConfirmation({
+        title: 'ローカル設定の削除',
+        message: 'このプロファイルの保存済み設定を削除し、config.jsの設定へ戻します。未保存の変更も失われます。 ツリーのポイントとギフト飾りは削除しません。',
+        confirmLabel: 'ローカル設定を削除する', cancelLabel: '削除を取消',
+        execute: () => { runtime.clearLocal(); runtime.broadcastReload?.('settings-cleared'); window.location.reload(); }
+      })),
       createButton('保存して再読み込み', 'is-primary', () => {
         try {
           runtime.writeLocal(collect());
@@ -666,6 +706,7 @@
   };
 
   function open() {
+    cancelConfirmation?.();
     if (!root) build();
     draft = { ...runtime.effective };
     panelCollapsed = false;
@@ -677,6 +718,7 @@
   }
 
   function close() {
+    cancelConfirmation?.();
     if (!root) return;
     root.hidden = true;
     window.dispatchEvent(new CustomEvent('vct-settings-reset-preview'));

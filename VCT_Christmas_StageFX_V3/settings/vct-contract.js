@@ -39,7 +39,7 @@ const factory = typeof module === 'object' && module.exports ? module.exports : 
 const contract = factory.create({
   "templateId": "vct_christmas_stage_fx",
   "schemaVersion": 1,
-  "templateVersion": "0.1.0",
+  "templateVersion": "0.2.0",
   "sections": {
     "stage": {
       "title": "ステージ",
@@ -835,7 +835,6 @@ const contract = factory.create({
           "type": "select",
           "options": [
             "sample_effect",
-            "halloween_parade_effect",
             "heart_effect",
             "stars_effect",
             "confetti_effect",
@@ -844,7 +843,6 @@ const contract = factory.create({
           ],
           "labels": {
             "sample_effect": "サークル",
-            "halloween_parade_effect": "ハロウィンパレード",
             "heart_effect": "Heart（ハート上昇）",
             "stars_effect": "Stars（流星）",
             "confetti_effect": "紙吹雪",
@@ -991,122 +989,6 @@ const contract = factory.create({
             "large": "強",
             "extra": "最大"
           }
-        }
-      }
-    },
-    "layout:halloween_parade_effect": {
-      "title": "ハロウィンパレードの配置・強度",
-      "tab": "effectPlacement",
-      "layoutPlugin": "halloween_parade_effect",
-      "plugin": "halloween_parade_effect",
-      "fields": {
-        "STAGE_PLUGIN_halloween_parade_effect_ENABLED": {
-          "type": "checkbox",
-          "label": "この演出を有効にする",
-          "default": true
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_X": {
-          "type": "range-number",
-          "label": "演出のX位置",
-          "default": 0,
-          "min": 0,
-          "max": 1920,
-          "step": 5,
-          "numberStep": 1
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_Y": {
-          "type": "range-number",
-          "label": "演出のY位置",
-          "default": 0,
-          "min": 0,
-          "max": 1080,
-          "step": 5,
-          "numberStep": 1
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_WIDTH": {
-          "type": "range-number",
-          "label": "演出領域の幅",
-          "default": 1920,
-          "min": 40,
-          "max": 1920,
-          "step": 5,
-          "numberStep": 1
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_HEIGHT": {
-          "type": "range-number",
-          "label": "演出領域の高さ",
-          "default": 1080,
-          "min": 40,
-          "max": 1080,
-          "step": 5,
-          "numberStep": 1
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_SCALE": {
-          "type": "range-number",
-          "label": "演出全体の倍率",
-          "default": 1,
-          "min": 0.1,
-          "max": 3,
-          "step": 0.05,
-          "numberStep": 0.01
-        },
-        "STAGE_PLUGIN_halloween_parade_effect_INTENSITY": {
-          "type": "select",
-          "label": "この演出の強度",
-          "default": "inherit",
-          "options": [
-            "inherit",
-            "small",
-            "standard",
-            "large",
-            "extra"
-          ],
-          "labels": {
-            "inherit": "共通設定を使用",
-            "small": "弱",
-            "standard": "標準",
-            "large": "強",
-            "extra": "最大"
-          }
-        }
-      }
-    },
-    "plugin:halloween_parade_effect": {
-      "title": "ハロウィンパレードの設定（AI生成画像を同梱）",
-      "tab": "effects",
-      "plugin": "halloween_parade_effect",
-      "fields": {
-        "HALLOWEEN_RENDER_MODE": {
-          "default": "emoji",
-          "type": "select",
-          "options": [
-            "emoji",
-            "image"
-          ],
-          "labels": {
-            "emoji": "絵文字",
-            "image": "AI生成画像"
-          },
-          "label": "表示素材"
-        },
-        "HALLOWEEN_PATTERN": {
-          "default": "parade",
-          "type": "select",
-          "options": [
-            "parade",
-            "ghostNight",
-            "batSwarm",
-            "candyRain",
-            "randomPop"
-          ],
-          "labels": {
-            "parade": "パレード",
-            "ghostNight": "ゴーストナイト",
-            "batSwarm": "コウモリの群れ",
-            "candyRain": "キャンディレイン",
-            "randomPop": "ランダムポップ"
-          },
-          "label": "演出パターン"
         }
       }
     },
@@ -2131,15 +2013,6 @@ const contract = factory.create({
     "STAGE_PLUGIN_sample_effect_HEIGHT": 1080,
     "STAGE_PLUGIN_sample_effect_SCALE": 1,
     "STAGE_PLUGIN_sample_effect_INTENSITY": "inherit",
-    "STAGE_PLUGIN_halloween_parade_effect_ENABLED": true,
-    "STAGE_PLUGIN_halloween_parade_effect_X": 0,
-    "STAGE_PLUGIN_halloween_parade_effect_Y": 0,
-    "STAGE_PLUGIN_halloween_parade_effect_WIDTH": 1920,
-    "STAGE_PLUGIN_halloween_parade_effect_HEIGHT": 1080,
-    "STAGE_PLUGIN_halloween_parade_effect_SCALE": 1,
-    "STAGE_PLUGIN_halloween_parade_effect_INTENSITY": "inherit",
-    "HALLOWEEN_RENDER_MODE": "emoji",
-    "HALLOWEEN_PATTERN": "parade",
     "STAGE_PLUGIN_heart_effect_ENABLED": true,
     "STAGE_PLUGIN_heart_effect_X": 0,
     "STAGE_PLUGIN_heart_effect_Y": 0,

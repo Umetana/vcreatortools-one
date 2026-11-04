@@ -2,7 +2,7 @@
 window.VCT_TEMPLATE_DEFINITION = {
   "templateId": "vct_christmas_stage_fx",
   "schemaVersion": 1,
-  "templateVersion": "0.1.0",
+  "templateVersion": "0.2.0",
   "contractFile": "christmas-stage-fx-contract.js",
   "definitionScripts": [
     "config_default.js",
@@ -10,7 +10,6 @@ window.VCT_TEMPLATE_DEFINITION = {
     "settings/definition-prepare.js",
     "runtime/effect-registry.js",
     "effects/sample_effect/main.js",
-    "effects/halloween_parade_effect/main.js",
     "effects/heart_effect/main.js",
     "effects/stars_effect/main.js",
     "effects/confetti_effect/main.js",

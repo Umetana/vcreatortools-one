@@ -221,10 +221,10 @@ async function main() {
  await tab('コメント装飾');await page.locator('[data-config-key="COMMENT_EFFECT"]').selectOption('flash');
  await page.getByRole('button',{name:'保存して再読み込み',exact:true}).click();
  await page.waitForFunction(()=>window.CONFIG?.COMMENT_X===222 && window.CONFIG?.COMMENT_EFFECT==='flash');
- await page.evaluate(async()=>{await window.VCTStage.effectsReady;await window.VCTStage.catalog.change('halloween_parade_effect',false);});
+ await page.evaluate(async()=>{await window.VCTStage.effectsReady;await window.VCTStage.catalog.change('sparkle_effect',false);});
  await page.goto(origin+'/VCT_Christmas_StageFX_V3/index.html?profile=game');await page.evaluate(()=>window.VCTStage.effectsReady);
  assert.equal(await page.evaluate(()=>window.CONFIG.COMMENT_X),80);
- assert.equal(await page.evaluate(()=>!!window.VCTStage.registry.get('halloween_parade_effect')),false);
+ assert.equal(await page.evaluate(()=>!!window.VCTStage.registry.get('sparkle_effect')),false);
  await page.goto(origin+'/VCT_Christmas_StageFX_V3/index.html?profile=talk');
  assert.equal(await page.evaluate(()=>window.CONFIG.COMMENT_X),222);
  assert.equal(await page.evaluate(()=>window.CONFIG.COMMENT_EFFECT),'flash');

@@ -83,7 +83,7 @@
       intensity: resolvedIntensity,
       bgOpacity: api.number(config.STAGE_EFFECT_BG_OPACITY, 0, .7, 0),
       placement: { x: value('X'), y: value('Y'), width: value('WIDTH'), height: value('HEIGHT'), scale: value('SCALE') },
-      settings: config.CHRISTMAS_ASSET_MODE === 'plain' ? { ...config, HALLOWEEN_RENDER_MODE: 'emoji' } : config,
+      settings: config,
       ...(id === 'christmas_tree' ? { progress: treeSnapshot(), progressPreview: treePreviewCount !== null || treePreviewGifts !== null } : {})
     };
   }

@@ -4,13 +4,15 @@
   const api = window.VCTStage, runtime = window.VCT_CONFIG_RUNTIME;
   const key = runtime.effectsStorageKey;
   const valid = id => typeof id === 'string' && /^[a-z][a-z0-9_-]{0,63}$/i.test(id);
+  const retired = new Set(['halloween_parade_effect']);
+  const available = id => valid(id) && !retired.has(id);
   const standard = [...new Set(['sample_effect', ...(Array.isArray(window.VCT_EFFECTS_LIST) ? window.VCT_EFFECTS_LIST.filter(valid) : [])])];
   let state = { added: [], disabled: [] }, busy = false;
   const styles = new Map(), cache = new Map(), errors = new Map();
   try {
     const saved = JSON.parse(localStorage.getItem(key));
-    if (saved) state = { added: [...new Set((Array.isArray(saved.added) ? saved.added : []).filter(valid))].slice(0, 32),
-      disabled: (Array.isArray(saved.disabled) ? saved.disabled : []).filter(id => valid(id) && id !== 'sample_effect') };
+    if (saved) state = { added: [...new Set((Array.isArray(saved.added) ? saved.added : []).filter(available))].slice(0, 32),
+      disabled: (Array.isArray(saved.disabled) ? saved.disabled : []).filter(id => available(id) && id !== 'sample_effect') };
   } catch (_) { errors.set('保存一覧', '保存一覧を読み込めませんでした'); }
   const loadElement = (tag, id) => new Promise((resolve, reject) => {
     const element = document.createElement(tag);
@@ -53,6 +55,7 @@
   async function change(id, enabled) {
     if (busy) throw new Error('演出の読み込み中です');
     if (!valid(id)) throw new Error('IDは英字で始まる英数字・_・-の64文字以内です');
+    if (retired.has(id)) throw new Error('このクリスマス版では使用しない演出です');
     if (!enabled && id === 'sample_effect') throw new Error('サークルは標準の復帰先です');
     if (enabled && api.registry.get(id)) throw new Error('登録済みの演出です');
     if (enabled && !standard.includes(id) && !state.added.includes(id) && state.added.length >= 32) throw new Error('追加上限は32件です');

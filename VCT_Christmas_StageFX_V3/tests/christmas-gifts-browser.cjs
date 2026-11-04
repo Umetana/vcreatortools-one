@@ -73,7 +73,7 @@ async function main(){
  await page.evaluate(()=>window.VCT_CONFIG_RUNTIME.commitLocal({CHRISTMAS_TREE_GIFT_LIMIT:30}));await frame();assert.equal(await gifts.count(),30);assert.deepEqual(await stageRecord(),stagesBefore);await screen('christmas-gifts-30');
  await page.getByRole('button',{name:'画面演出を全停止',exact:true}).click();await emit('paused-gift',true);assert.equal(await gifts.count(),30);assert.equal(await gifts.last().evaluate(el=>el.getAnimations().filter(a=>a.playState==='running').length),0);
  await page.getByRole('button',{name:'常設の動きを再開',exact:true}).click();
- await page.evaluate(()=>window.VCT_SETTINGS_PANEL.refreshSaved());await selectTree();await page.getByRole('button',{name:'ツリーの成長をリセット',exact:true}).click();await page.getByRole('button',{name:'リセットを実行',exact:true}).click();assert.equal(await gifts.count(),0);assert.equal(await tree.getAttribute('data-count'),'0');
+ await page.evaluate(()=>window.VCT_SETTINGS_PANEL.refreshSaved());await selectTree();await page.getByRole('button',{name:'ツリーの成長をリセット',exact:true}).click();await page.getByRole('button',{name:'ツリーをリセットする',exact:true}).click();assert.equal(await gifts.count(),0);assert.equal(await tree.getAttribute('data-count'),'0');
  assert.deepEqual(errors,[]);console.log('PASS: 段階3種の保持・ギフト別レイヤー・ボーナス0時の飾り・FIFO・種類位置の復元・上限下書き取消・保存時整理・非保存プレビュー・素材なし・最低サイズ・120個・停止・リセット');
  }finally{await browser.close();server.close();}
 }

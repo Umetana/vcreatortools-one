@@ -62,7 +62,7 @@ async function main() {
  await page.getByRole('tab',{name:'演出配置',exact:true}).click();await page.getByLabel('配置する演出',{exact:true}).selectOption('christmas_tree');
  const enabled=page.locator('[data-config-key="STAGE_PLUGIN_christmas_tree_ENABLED"]');await enabled.uncheck();assert.equal(await tree.count(),0);await enabled.check();await tree.waitFor();assert.equal(await tree.getAttribute('data-count'),'500');
  await page.getByRole('button',{name:'ツリーの成長をリセット',exact:true}).click();await page.getByRole('button',{name:'リセットを取消',exact:true}).click();assert.equal(await tree.getAttribute('data-count'),'500');
- await page.getByRole('button',{name:'ツリーの成長をリセット',exact:true}).click();await page.getByRole('button',{name:'リセットを実行',exact:true}).click();assert.equal(await tree.getAttribute('data-count'),'0');
+ await page.getByRole('button',{name:'ツリーの成長をリセット',exact:true}).click();await page.getByRole('button',{name:'ツリーをリセットする',exact:true}).click();assert.equal(await tree.getAttribute('data-count'),'0');
  await page.reload();await page.evaluate(()=>window.VCTStage.effectsReady);await tree.waitFor();assert.equal(await tree.getAttribute('data-count'),'0');
 
  // 実際の購読境界からSDK正規化を通す。外部の実コメントへは接続しない。

@@ -54,7 +54,7 @@ Hostは正常終了・停止・例外を同じ後片づけへ集約し、destroy
 
 ## パラメータと接続
 
-現行main.jsはcount（1〜60）、duration（1200〜10000ms）、intensity（small/standard/large/extra）、bgOpacity（0〜0.7）、settings（発火時の設定コピー）を渡します。強度の表現はPluginが決め、負荷上限は守ります。Halloweenのような固有設定はPlugin内でsettingsから取り出します。
+現行main.jsはcount（1〜60）、duration（1200〜10000ms）、intensity（small/standard/large/extra）、bgOpacity（0〜0.7）、settings（発火時の設定コピー）を渡します。強度の表現はPluginが決め、負荷上限は守ります。ツリーのような固有設定はPlugin内でsettingsから取り出します。
 
 発火対象はmain.jsとtriggers.jsです。演出名の選択肢はManifestから自動生成します。Runtime本体に演出固有の分岐を追加しないでください。
 
@@ -78,6 +78,6 @@ settings: {
 }
 ```
 
-キーは大文字英字で始まる英数字・アンダースコアとし、固有の接頭辞を付けて基盤や他Pluginと重複させないでください。typeはcheckbox、select、text、color、range、range-number、numberに対応。labelとdefaultは必須、範囲入力はmin/max/stepも指定します。defaultは文字列・数値・真偽値です。設定の優先順位はPlugin初期値→config.js→保存値です。Halloweenの既存保存キーは維持しています。
+キーは大文字英字で始まる英数字・アンダースコアとし、固有の接頭辞を付けて基盤や他Pluginと重複させないでください。typeはcheckbox、select、text、color、range、range-number、numberに対応。labelとdefaultは必須、範囲入力はmin/max/stepも指定します。defaultは文字列・数値・真偽値です。設定の優先順位はPlugin初期値→config.js→保存値です。
 
 Pluginはテンプレートと同じ権限で実行される信頼済みのローカルJavaScriptです。読み込み時のトップレベルでは登録だけを行い、必ずIIFE等で変数を閉じてください。ファイル検査はコードの安全性を保証しません。CSSは固有の範囲へ限定し、素材とコードのライセンスは各PluginのREADMEに記載してください。

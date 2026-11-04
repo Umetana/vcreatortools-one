@@ -367,3 +367,17 @@
 
 /* 接続設定はスクロール可能な操作群へ収め、小さいOBS対話でも保存欄を維持する。 */
 .vct-settings-tools > details.vct-settings-section{width:100%;margin:0;padding:8px 0}.vct-settings-tools > details.vct-settings-section label{display:block;margin:8px 0}.vct-settings-tools > details.vct-settings-section input[type=text],.vct-settings-tools > details.vct-settings-section input[type=password]{width:100%;box-sizing:border-box}.vct-settings-tools > details.vct-settings-section p{font-size:12px}.vct-settings-tools > details.vct-settings-section button{margin:4px}
+
+
+/* スクロール位置に関係なく、対象を明示した確認を画面内に表示する。 */
+.vct-settings-confirm-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: #020617b8; pointer-events: auto; }
+.vct-settings-confirm-dialog { width: min(390px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 20px; border: 1px solid #64748b; border-radius: 12px; background: #101b2c; box-shadow: 0 12px 40px #0008; color: #f8fafc; }
+.vct-settings-confirm-dialog h3 { margin: 0 0 14px; color: #facc15; font-size: 18px; }
+.vct-settings-confirm-dialog p { margin: 0 0 16px; font-size: 14px; line-height: 1.7; }
+.vct-settings-confirm-error:empty { display: none; }
+.vct-settings-confirm-error { color: #fca5a5; }
+.vct-settings-confirm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.vct-settings-confirm-actions button { padding: 10px 12px; border: 1px solid #64748b; border-radius: 5px; background: #273449; color: #f8fafc; font: inherit; cursor: pointer; }
+.vct-settings-confirm-actions button.is-danger { background: #842d36; border-color: #c65a65; }
+.vct-settings-confirm-actions button:focus-visible { outline: 2px solid #facc15; outline-offset: 3px; }
+.vct-settings-confirm-actions button:disabled { opacity: .5; cursor: default; }
