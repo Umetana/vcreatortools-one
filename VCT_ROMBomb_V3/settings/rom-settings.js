@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const contract = window.VCT_SETTINGS_CONTRACT.create({
-    templateId: 'rom_bomb', schemaVersion: 1, templateVersion: '0.1.0',
+    templateId: 'rom_bomb', schemaVersion: 1, templateVersion: '0.2.0',
     defaults: window.CONFIG_DEFAULT, sections: window.VCT_SETTINGS_SCHEMA
   });
   const validate = (source) => {
