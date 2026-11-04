@@ -1,0 +1,50 @@
+/* MIT Copyright (c) 2026 Umetana */
+:root { font-family: "Yu Gothic", "Meiryo", sans-serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+[hidden] { display: none !important; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; overflow: hidden; pointer-events: none; }
+#cards { position: absolute; width: 132px; }
+.rom-slot { position: absolute; width: 132px; height: 82px; transition: transform 220ms ease; animation: rom-enter 180ms ease-out; }
+.rom-card { position: relative; width: 132px; height: 62px; border-radius: 14px; background: rgba(22, 29, 43, .7); box-shadow: 0 2px 6px #0005; }
+.rom-portrait { position: absolute; left: 6px; top: 1px; width: 60px; height: 60px; border-radius: 12px; overflow: hidden; background: #394354; }
+.rom-avatar { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rom-fallback { display: grid; place-items: center; width: 100%; height: 100%; font-size: 38px; }
+.rom-time { position: absolute; left: 6px; bottom: 1px; width: 60px; z-index: 3; border-radius: 0 0 10px 10px; background: #08101de6; color: #fff; text-align: center; font: bold 16px/20px Consolas, monospace; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px #000; }
+.rom-name { position: relative; z-index: 4; margin-top: 3px; width: 132px; color: white; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: bold; line-height: 19px; text-shadow: 0 1px 3px #000, 1px 0 3px #000, -1px 0 3px #000; }
+.rom-bomb { position: absolute; left: 66px; top: 9px; z-index: 2; width: 48px; height: 48px; display: grid; place-items: center; font: 40px/1 "Segoe UI Emoji", "Apple Color Emoji", sans-serif; transform-origin: center; --bomb-scale: 1; --pulse-speed: 2s; animation: rom-pulse var(--pulse-speed) ease-in-out infinite; }
+.rom-artwork { display: block; width: 48px; height: 48px; object-fit: contain; }
+.rom-slot[data-visual-mode="visual"] .rom-card { outline: 1px solid #e0eaff3d; background-image: linear-gradient(135deg,#dbeafe24,transparent); }
+.rom-slot[data-visual-mode="visual"] .rom-portrait { outline: 1px solid #dbeafe55; }
+.rom-slot[data-stage="1"] .rom-card { background: #774515b8; box-shadow: 0 0 12px #ff9c3d85; }
+.rom-slot[data-stage="1"] .rom-bomb { --bomb-scale: 1.45; --pulse-speed: 1.15s; filter: drop-shadow(0 0 5px #ff9a22); }
+.rom-slot[data-stage="2"] .rom-card { background: #7e1d29c4; box-shadow: 0 0 16px #ff34497a; }
+.rom-slot[data-stage="2"] .rom-bomb { --bomb-scale: 2; --pulse-speed: .65s; filter: drop-shadow(0 0 7px #ff243f); animation-name: rom-danger; }
+.rom-slot[data-status="released"] .rom-bomb { animation: rom-release 650ms ease-out forwards; filter: drop-shadow(0 0 6px #b0ffca); }
+.rom-slot[data-status="exploding"] .rom-bomb { animation: rom-explode 300ms ease-out forwards, rom-explosion-pulse 800ms ease-in-out 300ms infinite, rom-explosion-fade 300ms linear calc(var(--explosion-duration) - 300ms) forwards; }
+.rom-slot[data-status="released"] .rom-card { background: #1f6552bf; }
+.rom-slot[data-status="released"] .rom-card, .rom-slot[data-status="released"] .rom-name { animation: rom-retire 650ms ease-in forwards; }
+.rom-slot[data-status="exploding"] .rom-card, .rom-slot[data-status="exploding"] .rom-name { animation: rom-explosion-fade 300ms linear calc(var(--explosion-duration) - 300ms) forwards; }
+#rom-demo-label { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: #14253cf0; color: white; border-radius: 8px; padding: 8px 14px; font-size: 14px; pointer-events: none; }
+#rom-placement-editor { position: fixed; z-index: 1; border: 2px dashed #7dd3fc; background: #38bdf814; color: white; text-shadow: 0 1px 3px black; font: 12px/1.4 sans-serif; cursor: move; touch-action: none; pointer-events: auto; overflow: visible; }
+#vct-settings-root .vct-settings-panel { z-index: 2; }
+.rom-fragments { position: absolute; inset: 0; width: 132px; height: 62px; z-index: 1; pointer-events: none; }
+.rom-shard { position: absolute; inset: 0; width: 132px; height: 62px; animation: rom-shatter 1200ms ease-out forwards; }
+.rom-shard .rom-card { animation: none !important; opacity: 1; }
+.rom-slot[data-shattered="true"] > .rom-card { background: transparent; box-shadow: none; outline: none; }
+.rom-slot[data-shattered="true"] > .rom-card > .rom-portrait,
+.rom-slot[data-shattered="true"] > .rom-card > .rom-time { visibility: hidden; }
+.rom-slot[data-shattered="true"] > .rom-name { animation: rom-retire 650ms ease-in forwards; }
+@keyframes rom-shatter {
+  0% { transform: translate(0,0) rotate(0); opacity: 1; }
+  65% { opacity: 1; }
+  100% { transform: translate(var(--shard-x),var(--shard-y)) rotate(var(--shard-turn)); opacity: 0; }
+}
+@keyframes rom-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rom-pulse { 0%, 100% { transform: scale(var(--bomb-scale)); } 50% { transform: scale(calc(var(--bomb-scale) * 1.12)); } }
+@keyframes rom-danger { 0%, 100% { transform: scale(var(--bomb-scale)) rotate(-3deg); opacity: 1; } 50% { transform: scale(calc(var(--bomb-scale) * 1.14)) rotate(3deg); opacity: .8; } }
+@keyframes rom-release { 0% { transform: scale(1); opacity: 1; } 55% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(.7); opacity: 0; } }
+@keyframes rom-explode { from { transform: scale(1.6); } to { transform: scale(2.7); } }
+@keyframes rom-explosion-pulse { 0%, 100% { transform: scale(2.7); } 50% { transform: scale(3); } }
+@keyframes rom-explosion-fade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes rom-retire { 0%, 35% { opacity: 1; } 100% { opacity: 0; } }
