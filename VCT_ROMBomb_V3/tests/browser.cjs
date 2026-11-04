@@ -11,6 +11,13 @@ const servedFolder = path.basename(root);
 const artifacts = path.join(__dirname, 'artifacts');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const mockSDK = `
+window.__tones = 0;
+window.__audioContexts = [];
+const NativeAudioContext = window.AudioContext;
+window.AudioContext = class extends NativeAudioContext {
+ constructor(...args) { super(...args); window.__audioContexts.push(this); }
+ createOscillator() { window.__tones++; return super.createOscillator(); }
+};
 window.__clock = Date.now();
 Date.now = () => window.__clock;
 window.__handlers = {};
@@ -102,7 +109,7 @@ const server = http.createServer((request, response) => {
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const executable = process.env.ROM_BOMB_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-    chrome = spawn(executable, ['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run','--no-default-browser-check','--disable-background-networking','--disable-component-update','--disable-sync','about:blank'], { windowsHide: true, stdio: 'ignore' });
+    chrome = spawn(executable, ['--headless=new','--mute-audio','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run','--no-default-browser-check','--disable-background-networking','--disable-component-update','--disable-sync','about:blank'], { windowsHide: true, stdio: 'ignore' });
     let launchError;
     chrome.on('error', error => { launchError = error; });
     const portFile = path.join(profile, 'DevToolsActivePort');
@@ -472,6 +479,35 @@ const server = http.createServer((request, response) => {
     assert.equal(await visualEval('window.CONFIG.VISUAL_MODE'),'visual');
     assert.equal(await visualEval('window.CONFIG.SHATTER_CARDS'),true);
     assert.equal(await visualEval('document.querySelectorAll(".rom-shard").length'),0);
+    const audioSession = await newPage(cdp.origin + '/' + servedFolder + '/index.html?settings=1');
+    const audioEval = expression => cdp.evaluate(expression, audioSession);
+    await cdp.wait('!!window.VCT_SETTINGS_PANEL', audioSession);
+    await audioEval(`window.VCT_CONFIG_RUNTIME.commitLocal({...CONFIG_DEFAULT,START_MIN:.01,WARN_MIN:.02,DANGER_MIN:.03,EXPLODE_MIN:.04});__comment('silent-1','無音確認');__clock+=600;`);
+    await delay(250);
+    await audioEval('__clock+=2400'); await delay(250);
+    assert.equal(await audioEval('__audioContexts.length'), 0);
+    // 試聴は実AudioContextを利用。テスト用Chromeの出力だけをミュートする。
+    await cdp.send('Runtime.evaluate', {expression:'document.getElementById("rom-audio-test").click()',userGesture:true},audioSession);
+    await cdp.wait('__tones === 1',audioSession);
+    assert.equal(await audioEval('__audioContexts[0].state'),'running');
+    await delay(450);
+    await audioEval(`window.VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:true,SOUND_VOLUME:17});
+      for(let i=0;i<3;i++) __comment('sound-'+i,'音確認'+i);__clock+=600;`);
+    await delay(250);
+    await audioEval('__clock+=2400'); await delay(250);
+    assert.equal(await audioEval('__tones'),2);
+    await delay(650);
+    await audioEval(`window.dispatchEvent(new CustomEvent('vct-settings-preview',{detail:{...CONFIG,VISUAL_MODE:'visual'}}));`);
+    assert.equal(await audioEval('__tones'),2);
+    await audioEval(`window.VCT_CONFIG_RUNTIME.commitLocal({...CONFIG,EXPLOSION_SOUND:false});__comment('silent-2','再無音確認');__clock+=600;`);
+    await delay(250);
+    await audioEval('__clock+=2400'); await delay(250);
+    assert.equal(await audioEval('__tones'),2);
+    await cdp.send('Page.reload',{},audioSession);
+    await cdp.wait('window.__connected === true',audioSession);
+    assert.equal(await audioEval('CONFIG.SOUND_VOLUME'),17);
+    assert.equal(await audioEval('CONFIG.EXPLOSION_SOUND'),false);
+    assert.equal(await audioEval('__audioContexts.length'),0);
     assert.deepEqual(cdp.errors, []);
     assert.deepEqual(cdp.unexpectedRequests, []);
     console.log('Chrome模擬検証: HTTP/file起動、透過、カード・画像・安全な名前表示、段階、設定保存・取消・不正値、一時停止、再読込、確認表示の分離が成功。');

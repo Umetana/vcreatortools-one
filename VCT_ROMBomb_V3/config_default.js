@@ -23,6 +23,8 @@ window.CONFIG_DEFAULT = {
   TIME_MODE: 'elapsed',
   VISUAL_MODE: 'emoji',
   EXPLOSION_EFFECT: true,
+  EXPLOSION_SOUND: false,
+  SOUND_VOLUME: 30,
   SHATTER_CARDS: false,
   EXPLOSION_SECONDS: 2,
   RELEASE_EFFECT: true

@@ -28,6 +28,10 @@
       EXPLOSION_SECONDS: { type: 'number', label: '爆発から退場まで（秒）', min: .3, max: 30 },
       RELEASE_EFFECT: { type: 'checkbox', label: '解除演出' }
     } },
+    audio: { title: '効果音（保存時に適用）', fields: {
+      EXPLOSION_SOUND: { type: 'checkbox', label: '爆発時に合成音を鳴らす' },
+      SOUND_VOLUME: { type: 'range', label: '効果音の音量（%）', min: 0, max: 100, step: 1 }
+    } },
     randomArea: { title: 'ランダム配置の範囲', arrangement: 'random', fields: {
       RANDOM_X: { type: 'placement', label: '範囲の左位置（px）', min: 0, max: 1919, step: 5, numberStep: 1 },
       RANDOM_Y: { type: 'placement', label: '範囲の上位置（px）', min: 0, max: 1079, step: 5, numberStep: 1 },

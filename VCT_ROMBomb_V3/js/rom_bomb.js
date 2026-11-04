@@ -8,6 +8,9 @@
   const engine = new window.RomBombEngine(config);
   const elements = new Map();
   const randomPositions = new Map();
+  const sounded = new Set();
+  const audio = window.RomBombAudio.create(window.AudioContext || window.webkitAudioContext,
+    message => window.dispatchEvent(new CustomEvent('rom-audio-status', { detail: message })));
   const subscriptions = [];
   let disposed = false;
   let demo = null;
@@ -192,6 +195,12 @@
       element.name.hidden = !appearance.SHOW_NAME;
       window.RomBombEffects.material(element, row, appearance.VISUAL_MODE);
       window.RomBombEffects.shatter(element, row, config.SHATTER_CARDS);
+      const soundKey = positionKey(row);
+      if (row.status === 'exploding' && !sounded.has(soundKey)) {
+        sounded.add(soundKey);
+        // 設定変更や確認表示の終了で、既に進行中の爆発を鳴らし直さない。
+        if (config.EXPLOSION_SOUND && Date.now() - (row.until - row.duration) < 400) audio.play(config.SOUND_VOLUME);
+      }
       const url = safeImage(row.profileImage);
       if (url !== element.imageUrl) {
         element.imageUrl = url;
@@ -219,6 +228,7 @@
       if (current) for (const row of [...current.listeners.values(), ...current.effects.values()]) live.add(`${scope}:${row.key}:${row.generation}`);
     }
     for (const key of randomPositions.keys()) if (!live.has(key)) randomPositions.delete(key);
+    for (const key of sounded) if (!live.has(key)) sounded.delete(key);
   }
   function receive(raw) {
     if (disposed || !raw || typeof raw !== 'object') return;
@@ -248,6 +258,8 @@
     engine.configure(next, Date.now());
     config = { ...next };
     appearance = { ...next };
+    if (config.EXPLOSION_SOUND && config.SOUND_VOLUME > 0) void audio.unlock();
+    else audio.stop();
     stopDemo();
     tick();
   }
@@ -266,7 +278,9 @@
     tick();
   }
   function stopDemo() {
+    if (demo) audio.stop();
     demo = null;
+    for (const key of sounded) if (key.startsWith('demo:')) sounded.delete(key);
     for (const key of randomPositions.keys()) if (key.startsWith('demo:')) randomPositions.delete(key);
     if (demoTimer !== null) clearTimeout(demoTimer);
     demoTimer = null;
@@ -299,11 +313,19 @@
     if (event.detail === 'demo') startDemo();
     if (event.detail === 'stop') { stopDemo(); tick(); }
   }
+  async function testAudio(event) {
+    audio.stop();
+    const volume = Number(event.detail);
+    if (volume === 0) {
+      window.dispatchEvent(new CustomEvent('rom-audio-status', { detail: '音量が0%のため無音です。' }));
+    } else if (await audio.unlock()) audio.play(volume);
+  }
   window.addEventListener('resize', layout);
   window.addEventListener('vct-settings-preview', preview);
   window.addEventListener('vct-settings-committed', applyCommitted);
   window.addEventListener('vct-settings-reset-preview', resetPreview);
   window.addEventListener('rom-test', testAction);
+  window.addEventListener('rom-audio-test', testAudio);
   window.addEventListener('rom-placement-toggle', toggleEditing);
   document.addEventListener('visibilitychange', onVisibility);
   const interval = setInterval(tick, 200);
@@ -311,6 +333,7 @@
     disposed = true;
     clearInterval(interval);
     stopDemo();
+    audio.dispose();
     placementEditor.destroy();
     for (const id of subscriptions) window.OneSDK?.unsubscribe(id);
     window.removeEventListener('resize', layout);
@@ -318,6 +341,7 @@
     window.removeEventListener('vct-settings-committed', applyCommitted);
     window.removeEventListener('vct-settings-reset-preview', resetPreview);
     window.removeEventListener('rom-test', testAction);
+    window.removeEventListener('rom-audio-test', testAudio);
     window.removeEventListener('rom-placement-toggle', toggleEditing);
     document.removeEventListener('visibilitychange', onVisibility);
   }, { once: true });

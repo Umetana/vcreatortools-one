@@ -432,6 +432,16 @@
       placementButton.setAttribute('aria-pressed', String(event.detail));
     });
     previewTools.append(placementButton);
+    const audioStatus = document.createElement('p');
+    audioStatus.id = 'rom-audio-status';
+    audioStatus.setAttribute('role', 'status');
+    audioStatus.textContent = '効果音は初期設定OFF。試聴は未保存の音量でも再生します。';
+    const audioButton = createButton('爆発音を試聴', '', () => {
+      window.dispatchEvent(new CustomEvent('rom-audio-test', { detail: collect().SOUND_VOLUME }));
+    });
+    audioButton.id = 'rom-audio-test';
+    previewTools.append(audioButton, audioStatus);
+    window.addEventListener('rom-audio-status', event => { audioStatus.textContent = event.detail; });
     for(const [kind,label] of [['demo','短時間で演出を確認'],['stop','確認表示を終了']]) previewTools.append(createButton(label,'',()=>window.dispatchEvent(new CustomEvent('rom-test',{detail:kind}))));
     panel.append(header, previewTools, tools, reloadConfirmation);
     window.VCT_TEMPLATE_LINK?.attach(panel);
