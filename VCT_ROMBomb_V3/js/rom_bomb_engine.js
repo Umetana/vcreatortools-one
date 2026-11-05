@@ -5,6 +5,7 @@
   class RomBombEngine {
     constructor(config, now = Date.now()) {
       this.config = { ...config };
+      this.setReleaseWords(config);
       this.startedAt = now;
       this.listeners = new Map();
       this.seen = new Map();
@@ -20,6 +21,16 @@
     retention() {
       return Math.max((this.config.START_MIN + this.config.EXPLODE_MIN) * 60000, 1200000) + 60000;
     }
+    setReleaseWords(config) {
+      const words = config.RELEASE_MODE === 'deny' ? config.RELEASE_DENY_WORDS : config.RELEASE_ALLOW_WORDS;
+      this.releaseWords = new Set((words || '').split(/\r?\n/).map(word => word.trim()).filter(Boolean));
+    }
+    canRelease(text) {
+      const matches = this.releaseWords.has(typeof text === 'string' ? text.trim() : '');
+      if (this.config.RELEASE_MODE === 'deny') return !matches;
+      if (this.config.RELEASE_MODE === 'allow') return matches;
+      return true;
+    }
     configure(config, now) {
       const wasEnabled = this.config.ENABLED;
       if (wasEnabled && !config.ENABLED) this.pausedAt = now;
@@ -28,6 +39,7 @@
         this.pausedAt = null;
       }
       this.config = { ...config };
+      this.setReleaseWords(config);
       for (const [key, user] of this.listeners) {
         if (user.moderator && !config.INCLUDE_MODERATORS) {
           this.listeners.delete(key);
@@ -57,6 +69,9 @@
         return false;
       }
       const previous = this.listeners.get(key);
+      // 一度でも登場した爆弾は、枠外・一時停止中も解除条件を保つ。
+      // 不一致でもseenには記録し、再送や設定変更で同じコメントを再判定しない。
+      if (previous?.bombStartedAt != null && !this.canRelease(comment.text)) return false;
       const silentElapsed = previous ? Math.max(0, this.activeTime(now) - previous.lastActiveAt) : 0;
       const elapsed = previous?.bombStartedAt != null ? Math.max(0, this.activeTime(now) - previous.bombStartedAt) : 0;
       // 同一ユーザーの古い演出を消してから新サイクルを作る。終了時の再登録削除を防ぐ。

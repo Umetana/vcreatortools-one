@@ -78,7 +78,17 @@
     const input = document.createElement('input');
     input.dataset.configKey = key;
 
-    if (field.type === 'placement') {
+    if (field.type === 'textarea') {
+      const textarea = document.createElement('textarea');
+      textarea.dataset.configKey = key;
+      textarea.value = draft[key] ?? '';
+      textarea.rows = 5;
+      textarea.maxLength = 2048;
+      textarea.setAttribute('aria-label', field.label);
+      row.append(textarea);
+      wrap.appendChild(row);
+      return wrap;
+    } else if (field.type === 'placement') {
       input.type = 'number';
       input.min = field.min;
       input.max = field.max;

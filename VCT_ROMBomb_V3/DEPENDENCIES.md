@@ -7,7 +7,7 @@
 | VCT SDK 2.0.3-dev | custom_base_template_V3_1_dev/libからvct_sdk.js・仕様・LICENSEを無改変で複製。MIT Copyright (c) 2026 Umetana |
 | 設定保存 | 同ベースのsettings/config-runtime.jsを無改変で複製。フォルダー名別のlocalStorage差分保存を利用 |
 | 設定UI | 同ベースのsettings-launcher.js・settings-panel.css・inline-color-pickerを複製。settings-panel.jsは専用確認表示・全体マウス配置・方式別の項目表示へ調整 |
-| 設定検証 | 同ベースのsettings-contract.jsを無改変で複製し、本作のrom-settings.jsで時刻順・整数制約を追加 |
+| 設定検証 | 同ベースのsettings-contract.jsを無改変で複製し、本作のrom-settings.jsで時刻順・整数制約・解除ワードの形式を検証。ワードはCSSへ渡さない平文として検証する |
 | 描画領域 | 同ベースruntime/layout.jsの1920×1080固定キャンバスへの縮小方式を専用描画へ流用。Vueは使用しない |
 | マウス配置 | 同ベースlib/placement-editor/v1のJSを無改変で同梱し、READMEは利用方法中心に整理。ドラッグ・ホイール・縮小座標補正を流用し、設定連動は専用描画とパネルが担当 |
 | OneSDK | ../__origin/js/onesdk.jsを実行時に参照。同梱・改変せず、公開APIのみ利用。動作確認したわんコメの版はTEST_RESULTSを参照 |

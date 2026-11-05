@@ -11,6 +11,11 @@
       MAX_ITEMS: { type: 'number', label: '最大表示人数', min: 1, max: 30 },
       INCLUDE_MODERATORS: { type: 'checkbox', label: 'モデレーターを対象に含める' }
     } },
+    release: { title: '爆弾表示後の解除条件（保存時に適用）', fields: {
+      RELEASE_MODE: { type: 'select', label: '解除できるコメント', options: ['any', 'deny', 'allow'], optionLabels: { any: 'すべてのコメント', deny: '指定ワード以外', allow: '指定ワードのみ' } },
+      RELEASE_DENY_WORDS: { type: 'textarea', label: '解除に使えないワード（「指定ワード以外」用・1行に1件）' },
+      RELEASE_ALLOW_WORDS: { type: 'textarea', label: '解除に必要なワード（「指定ワードのみ」用・1行に1件／ワードの設定・周知は配信者が行ってください）' }
+    } },
     layout: { title: '配置と表示', fields: {
       ARRANGEMENT: { type: 'select', label: '並べ方', options: ['vertical', 'horizontal', 'random'], optionLabels: { vertical: '縦並び', horizontal: '横並び', random: 'ランダム配置' } },
       WRAP_COUNT: { type: 'number', label: '折り返し人数（縦は1列・横は1行、0でなし）', min: 0, max: 30 },

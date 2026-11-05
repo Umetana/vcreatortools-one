@@ -246,6 +246,7 @@
       timestamp,
       name: parsed.user.displayName || parsed.user.name,
       profileImage: parsed.user.profileImage,
+      text: parsed.message.text,
       owner: parsed.user.roles.owner,
       moderator: parsed.user.roles.moderator,
       system
@@ -305,7 +306,8 @@
     demoTimer = setTimeout(() => {
       if (!demo) return;
       const now = Date.now();
-      demo.receive({ id: 'demo-release', userId: 'demo-1', service: 'demo', timestamp: now, name: '長い名前のリスナーの表示を確認' }, now);
+      const text = config.RELEASE_MODE === 'allow' ? config.RELEASE_ALLOW_WORDS.split(/\r?\n/).map(word => word.trim()).find(Boolean) : '';
+      demo.receive({ id: 'demo-release', userId: 'demo-1', service: 'demo', timestamp: now, name: '長い名前のリスナーの表示を確認', text }, now);
       tick();
     }, 3300);
     tick();

@@ -203,7 +203,8 @@
 }
 
 .vct-settings-field input:not([type="checkbox"]),
-.vct-settings-field select {
+.vct-settings-field select,
+.vct-settings-field textarea {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -213,6 +214,8 @@
   background: #0f172a;
   color: #f8fafc;
 }
+
+.vct-settings-field textarea { resize: vertical; font: inherit; }
 
 /* テキスト欄の余白を解除し、スライダーのバーとつまみの端を揃える。 */
 .vct-settings-field input[type="range"] {

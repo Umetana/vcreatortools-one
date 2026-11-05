@@ -208,5 +208,128 @@ test('追加前の保存設定には新項目の初期値だけを補い、既�
   assert.equal(legacy.window.CONFIG.SOUND_VOLUME, 30);
   assert.equal(legacy.window.CONFIG.SOUND_MODE, 'synth');
   assert.equal(legacy.window.CONFIG.SOUND_OVERLAP, false);
+  assert.equal(legacy.window.CONFIG.RELEASE_MODE, 'any');
+  assert.equal(legacy.window.CONFIG.RELEASE_DENY_WORDS, '');
+  assert.equal(legacy.window.CONFIG.RELEASE_ALLOW_WORDS, '');
   assert.equal(legacy.window.VCT_CONFIG_RUNTIME.storageKey, 'vct.template-settings.vct_rombomb_v3.v1');
+});
+
+test('指定ワードのみでも、未登場・枠待ちのコメントは待ち時間をリセットする', () => {
+  const engine = new Engine(config({ RELEASE_MODE: 'allow', RELEASE_ALLOW_WORDS: '解除A', MAX_ITEMS: 1 }), base);
+  engine.receive(comment({ text: '対象外' }), base);
+  engine.receive(comment({ id: 'u2-first', userId: 'u2' }), base);
+  engine.snapshot(base + 5 * minute);
+  const secondKey = JSON.stringify(['youtube','u2']);
+  assert.equal(engine.listeners.get(secondKey).bombStartedAt, null);
+  assert.equal(engine.receive(comment({ id: 'u2-reset', userId: 'u2', text: '対象外', timestamp: base + 6 * minute }), base + 6 * minute), true);
+  assert.equal(engine.listeners.get(secondKey).lastActiveAt, base + 6 * minute);
+  // 時間の閾値を過ぎていても、まだ実表示していない人には条件を適用しない。
+  const waiting = new Engine(config({ RELEASE_MODE: 'allow', RELEASE_ALLOW_WORDS: '解除A' }), base);
+  waiting.receive(comment(), base);
+  assert.equal(waiting.receive(comment({ id: 'before-render', text: '対象外', timestamp: base + 6 * minute }), base + 6 * minute), true);
+  assert.equal(waiting.snapshot(base + 6 * minute).length, 0);
+});
+
+test('指定ワードのみは複数行・空白除去の完全一致で解除し、不一致と再送は状態を変えない', () => {
+  const engine = new Engine(config({ RELEASE_MODE: 'allow', RELEASE_ALLOW_WORDS: ' 解除A \r\n\n解除B\n' }), base);
+  engine.receive(comment(), base);
+  engine.snapshot(base + 5 * minute);
+  const original = { ...engine.listeners.values().next().value };
+  const now = base + 6 * minute;
+  for (const [index, text] of ['解除Aです','解除a','解除Ａ','',undefined].entries()) {
+    assert.equal(engine.receive(comment({ id: 'no-'+index, text, timestamp: now }), now), false);
+    assert.deepEqual(engine.listeners.values().next().value, original);
+  }
+  engine.configure(config({ RELEASE_MODE: 'any' }), now);
+  assert.equal(engine.receive(comment({ id: 'no-0', text: '解除Aです', timestamp: now }), now), false);
+  engine.configure(config({ RELEASE_MODE: 'allow', RELEASE_ALLOW_WORDS: '解除A\n解除B' }), now);
+  assert.equal(engine.receive(comment({ id: 'yes', text: '　解除B \t', timestamp: now }), now), true);
+  assert.equal(engine.snapshot(now)[0].status, 'released');
+  assert.equal(engine.listeners.values().next().value.bombStartedAt, null);
+});
+
+test('指定ワード以外は一致したコメントを無視し、部分一致は解除できる', () => {
+  const engine = new Engine(config({ RELEASE_MODE: 'deny', RELEASE_DENY_WORDS: '対象A\n対象B' }), base);
+  engine.receive(comment(), base);
+  engine.snapshot(base + 5 * minute);
+  const now = base + 6 * minute;
+  assert.equal(engine.receive(comment({ id: 'deny', text: ' 対象A ', timestamp: now }), now), false);
+  assert.equal(engine.snapshot(now)[0].elapsed, minute);
+  assert.equal(engine.receive(comment({ id: 'allow', text: '対象Aです', timestamp: now }), now), true);
+  assert.equal(engine.snapshot(now)[0].status, 'released');
+});
+
+test('登場後は枠外・停止中も解除条件を維持し、爆発後の新規登録には条件を適用しない', () => {
+  const rules = config({ RELEASE_MODE: 'allow', RELEASE_ALLOW_WORDS: '解除A' });
+  const engine = new Engine(rules, base);
+  engine.receive(comment(), base);
+  engine.receive(comment({ id: 'c2', userId: 'u2' }), base);
+  engine.snapshot(base + 5 * minute);
+  engine.configure({ ...rules, MAX_ITEMS: 1, ENABLED: false }, base + 6 * minute);
+  engine.snapshot(base + 6 * minute);
+  const hiddenKey = JSON.stringify(['youtube','u2']);
+  assert.equal(engine.visible.has(hiddenKey), false);
+  const before = { ...engine.listeners.get(hiddenKey) };
+  assert.equal(engine.receive(comment({ id: 'hidden-no', userId: 'u2', text: '対象外', timestamp: base + 7 * minute }), base + 7 * minute), false);
+  assert.deepEqual(engine.listeners.get(hiddenKey), before);
+  assert.equal(engine.receive(comment({ id: 'hidden-yes', userId: 'u2', text: '解除A', timestamp: base + 7 * minute }), base + 7 * minute), true);
+  const active = new Engine(rules, base);
+  active.receive(comment(), base); active.snapshot(base + 5 * minute);
+  assert.equal(active.snapshot(base + 25 * minute)[0].status, 'exploding');
+  assert.equal(active.receive(comment({ id: 'after-explosion', text: '対象外', timestamp: base + 25 * minute }), base + 25 * minute), true);
+});
+
+test('解除条件はワードの内容を制限せず、空欄・型・長さ・モードだけを検証する', () => {
+  context.window.CONFIG = { ...defaults };
+  context.window.VCT_CONFIG_RUNTIME = { baseline: { ...defaults } };
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../settings/rom-settings.js'), 'utf8'), context);
+  const validate = context.window.VCT_TEMPLATE_SETTINGS.validate;
+  for (const mode of ['allow','deny']) {
+    assert.throws(() => validate(config({ RELEASE_MODE: mode, [mode === 'deny' ? 'RELEASE_DENY_WORDS' : 'RELEASE_ALLOW_WORDS']: ' \n　\r\n' })), /1件以上/);
+    assert.equal(validate(config({ RELEASE_MODE: mode, [mode === 'deny' ? 'RELEASE_DENY_WORDS' : 'RELEASE_ALLOW_WORDS']: 'url(test)\n@import\n<b>平文</b>' })).RELEASE_MODE, mode);
+  }
+  assert.equal(validate(config({ RELEASE_MODE: 'any', RELEASE_ALLOW_WORDS: '' })).RELEASE_MODE, 'any');
+  for (const override of [{ RELEASE_MODE: 'unknown' }, { RELEASE_ALLOW_WORDS: [] }, { RELEASE_DENY_WORDS: 'A'.repeat(2049) }]) {
+    assert.throws(() => validate(config(override)));
+  }
+});
+
+test('モードを変えると独立して保存したワードで判定し直す', () => {
+  const rules = config({ RELEASE_MODE: 'deny', RELEASE_DENY_WORDS: '対象A', RELEASE_ALLOW_WORDS: '解除A' });
+  const engine = new Engine(rules, base);
+  engine.receive(comment(), base); engine.snapshot(base + 5 * minute);
+  const now = base + 6 * minute;
+  assert.equal(engine.receive(comment({ id: 'deny-list', text: '対象A', timestamp: now }), now), false);
+  engine.configure({ ...rules, RELEASE_MODE: 'allow' }, now);
+  assert.equal(engine.receive(comment({ id: 'wrong-list', text: '対象A', timestamp: now }), now), false);
+  assert.equal(engine.receive(comment({ id: 'allow-list', text: '解除A', timestamp: now }), now), true);
+  assert.equal(engine.config.RELEASE_DENY_WORDS, '対象A');
+  assert.equal(engine.config.RELEASE_ALLOW_WORDS, '解除A');
+});
+
+test('共通ワードの保存設定を両欄へ移行し、分離後に保存した空欄は維持する', () => {
+  const boot = (fileConfig, local) => {
+    const fixture = { window: { CONFIG_DEFAULT: { ...defaults }, CONFIG: fileConfig,
+      location: { pathname: '/VCT_ROMBomb_V3/index.html' },
+      localStorage: { getItem: () => JSON.stringify(local) } } };
+    vm.createContext(fixture);
+    for (const file of ['settings/config-runtime.js','settings/settings-schema.js','settings/settings-contract.js','settings/rom-settings.js']) {
+      vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), fixture);
+    }
+    return fixture.window;
+  };
+  const migrated = boot({}, { RELEASE_MODE: 'allow', RELEASE_WORDS: '旧ワード', MAX_ITEMS: 4 });
+  assert.equal(migrated.CONFIG.RELEASE_DENY_WORDS, '旧ワード');
+  assert.equal(migrated.CONFIG.RELEASE_ALLOW_WORDS, '旧ワード');
+  assert.equal(migrated.CONFIG.RELEASE_MODE, 'allow');
+  assert.equal(migrated.CONFIG.MAX_ITEMS, 4);
+  assert.equal(Object.hasOwn(migrated.CONFIG,'RELEASE_WORDS'), false);
+  const cleared = boot({ RELEASE_MODE: 'allow', RELEASE_WORDS: 'ファイル旧ワード' },
+    { RELEASE_MODE: 'any', RELEASE_ALLOW_WORDS: '', RELEASE_DENY_WORDS: '別ワード' });
+  assert.equal(cleared.CONFIG.RELEASE_ALLOW_WORDS, '');
+  assert.equal(cleared.CONFIG.RELEASE_DENY_WORDS, '別ワード');
+  assert.equal(cleared.VCT_CONFIG_RUNTIME.baseline.RELEASE_ALLOW_WORDS, 'ファイル旧ワード');
+  const override = boot({ RELEASE_WORDS: 'ファイル旧ワード' }, { RELEASE_WORDS: 'ローカル旧ワード' });
+  assert.equal(override.CONFIG.RELEASE_ALLOW_WORDS, 'ローカル旧ワード');
+  assert.equal(override.CONFIG.RELEASE_DENY_WORDS, 'ローカル旧ワード');
 });

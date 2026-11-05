@@ -550,6 +550,45 @@ const server = http.createServer((request, response) => {
       assert.equal(await mp3Eval('CONFIG.SOUND_OVERLAP'),true);
       assert.equal(await mp3Eval('__media.length'),0);
     }
+    for (const url of [cdp.origin + '/' + servedFolder + '/index.html?settings=1',pathToFileURL(path.join(root,'index.html')).href+'?settings=1']) {
+      const releaseSession = await newPage(url);
+      const releaseEval = expression => cdp.evaluate(expression,releaseSession);
+      await cdp.wait('!!window.VCT_SETTINGS_PANEL',releaseSession);
+      await releaseEval(`VCT_CONFIG_RUNTIME.commitLocal({...CONFIG_DEFAULT,START_MIN:.01,WARN_MIN:.02,DANGER_MIN:.03,EXPLODE_MIN:.04});VCT_SETTINGS_PANEL.close();VCT_SETTINGS_PANEL.open();`);
+      const releaseField = (key,value) => releaseEval(`(()=>{const input=document.querySelector('[data-config-key=${key}]');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}));})();`);
+      const releaseSave = () => releaseEval(`[...document.querySelectorAll('button')].find(el=>el.textContent==='変更を保存').click()`);
+      await releaseField('RELEASE_MODE','allow');
+      await releaseSave();
+      assert.equal(await releaseEval('CONFIG.RELEASE_MODE'),'any');
+      assert.ok(await releaseEval('document.querySelector(".vct-settings-status").textContent.includes("1件以上")'));
+      await releaseField('RELEASE_ALLOW_WORDS','解除A\n解除B');
+      await releaseField('RELEASE_DENY_WORDS','対象A\n対象B');
+      await releaseSave();
+      assert.equal(await releaseEval('CONFIG.RELEASE_MODE'),'allow');
+      await releaseEval(`__comment('release-first','条件確認',{comment:'対象外'});__clock+=500;__comment('release-wait','条件確認',{comment:'対象外'});__clock+=600;`);
+      await cdp.wait('document.querySelector(".rom-slot")?.dataset.status==="active"',releaseSession);
+      await releaseEval(`__clock+=1000;__comment('release-no','条件確認',{comment:'解除Aです'});`);
+      await delay(250);
+      assert.equal(await releaseEval('document.querySelector(".rom-slot").dataset.status'),'active');
+      assert.equal(await releaseEval('document.querySelector(".rom-time").textContent'),'00:01');
+      await releaseEval(`__comment('release-yes','条件確認',{comment:'　<b>解除A</b>　'});`);
+      assert.equal(await releaseEval('document.querySelector(".rom-slot").dataset.status'),'released');
+      await releaseField('RELEASE_MODE','deny');
+      await releaseSave();
+      await releaseEval('__clock+=700'); await delay(250);
+      await releaseEval(`__comment('release-deny','条件確認',{comment:'対象B'});`);
+      assert.equal(await releaseEval('document.querySelector(".rom-slot").dataset.status'),'active');
+      await releaseField('RELEASE_MODE','any');
+      await releaseEval('VCT_SETTINGS_PANEL.close();VCT_SETTINGS_PANEL.open()');
+      assert.equal(await releaseEval('document.querySelector("[data-config-key=RELEASE_MODE]").value'),'deny');
+      await releaseEval(`__comment('release-partial','条件確認',{comment:'対象Bです'});`);
+      assert.equal(await releaseEval('document.querySelector(".rom-slot").dataset.status'),'released');
+      await cdp.send('Page.reload',{},releaseSession);
+      await cdp.wait('window.__connected === true',releaseSession);
+      assert.equal(await releaseEval('CONFIG.RELEASE_MODE'),'deny');
+      assert.equal(await releaseEval('CONFIG.RELEASE_ALLOW_WORDS'),'解除A\n解除B');
+      assert.equal(await releaseEval('CONFIG.RELEASE_DENY_WORDS'),'対象A\n対象B');
+    }
     assert.deepEqual(cdp.errors, []);
     assert.deepEqual(cdp.unexpectedRequests, []);
     console.log('Chrome模擬検証: HTTP/file起動、透過、カード・画像・安全な名前表示、段階、設定保存・取消・不正値、一時停止、再読込、確認表示の分離が成功。');
