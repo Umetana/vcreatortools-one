@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VCT SB V1 UI</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="../__origin/js/onesdk.js"></script>
+  <script src="../_vct_core/js/vct_management_connection.js"></script>
   <script src="../_vct_core/lib/idb/idb.min.js"></script>
   <script src="../_vct_core/js/vct_idb_core.js"></script>
   <script src="../_vct_core/js/vct_idb_common.js"></script>
@@ -197,7 +199,10 @@
   <script src="./dashboard-ui.js"></script>
   <script src="./dashboard-data.js"></script>
   <script>
-    initDashboard();
+    VCT_MANAGEMENT_CONNECTION.ready().then(() => initDashboard()).catch((error) => {
+      document.getElementById('status-bar').textContent = `接続失敗: ${error.message || error}`;
+    });
   </script>
+  <script src="../_vct_core/js/vct_management_diagnostics.js"></script>
 </body>
 </html>
