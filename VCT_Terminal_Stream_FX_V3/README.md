@@ -61,6 +61,4 @@ OBSのブラウザソースで「対話」を開き、右下にマウスを乗�
 
 - VCT SDK 2.0とVCT Stage FXの表示・購読・配置部品は、それぞれ [LICENSE-VCT-SDK](lib/LICENSE-VCT-SDK) と [LICENSE-VCT-Stage-FX](lib/LICENSE-VCT-Stage-FX) を保持しています。カラーピッカーと選択ダイアログはVCTの共通部品 `_vct_lib` のv1を同梱しています。
 
-わんコメ無料版を使う場合は、配信概要欄などに「配信者のためのコメントアプリ『わんコメ』」と記載してください。FANBOX支援者は任意です。概要欄がない場合や文字数制限が厳しい場合は省略できます。わんコメ本体は [公式ダウンロードページ](https://onecomme.com/download/) から入手できます。
-
-[制作ガイドライン](https://onecomme.com/developer-guidelines)・[利用規約](https://onecomme.com/terms/)・[テンプレート用SDK](https://onecomme.com/docs/developer/onesdk-js/)
+本テンプレートの利用にあたっては、クレジット表記を含むわんコメ公式の利用規約をご確認ください。 [わんコメ公式利用規約](https://onecomme.com/terms/)
