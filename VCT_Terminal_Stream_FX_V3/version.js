@@ -1,0 +1,1 @@
+window.TERMINAL_STREAM_FX_VERSION = '0.5.5';

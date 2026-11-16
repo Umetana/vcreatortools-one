@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VCT Terminal Stream FX V3</title>
+  <link rel="stylesheet" href="lib/stage.css">
+  <link rel="stylesheet" href="lib/inline-color-picker/picker.css">
+  <link rel="stylesheet" href="lib/choice-dialog/dialog.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="stage" aria-hidden="true">
+    <div id="stream-window">
+      <div id="stream-header" hidden>Terminal</div>
+      <div id="stream-content">
+        <div class="stream stream-back"></div>
+        <div class="stream stream-front"></div>
+      </div>
+      <div id="placement-outline" hidden></div>
+    </div>
+  </main>
+  <button id="placement-launcher" type="button" aria-label="配置設定を開く" aria-controls="placement-panel" aria-expanded="false" hidden>⚙</button>
+  <form id="placement-panel" aria-label="配置設定" hidden>
+    <p id="placement-version" hidden></p>
+    <fieldset id="panel-size-options">
+      <legend>設定UIの大きさ</legend>
+      <div>
+        <label><input type="radio" name="panelSize" value="standard" checked>標準</label>
+        <label><input type="radio" name="panelSize" value="medium">中</label>
+        <label><input type="radio" name="panelSize" value="large">大</label>
+      </div>
+    </fieldset>
+    <label>表示 <select name="mode"><option value="full">全画面</option><option value="window">ウインドウ</option></select></label>
+    <label>コメント書式 <select name="format"><option value="flow">標準</option><option value="json">JSON風</option></select></label>
+    <label>演出 <select name="visual"><option value="cyber">Cyber Data Flow</option><option value="terminal">Terminal Log</option></select></label>
+    <label>流れ方 <select name="motion"><option value="scroll">連続スクロール</option><option value="top">上積み</option><option value="bottom">下積み</option></select></label>
+    <label>流す内容 <select name="source"><option value="mixed">実コメント＋疑似ログ</option><option value="comments">実コメントのみ</option><option value="pseudo">疑似ログのみ</option></select></label>
+    <label id="full-angle">全画面の傾き（°） <input name="fullAngle" type="number" step="1"></label>
+    <label id="full-depth">全画面の奥行き（°） <input name="fullDepth" type="number" step="1"></label>
+    <fieldset id="window-placement">
+      <legend>ウインドウ配置</legend>
+      <label>X <input name="x" type="number" step="1"></label>
+      <label>Y <input name="y" type="number" step="1"></label>
+      <label>幅 <input name="width" type="number" step="1"></label>
+      <label>高さ <input name="height" type="number" step="1"></label>
+      <label>傾き（°） <input name="angle" type="number" step="1"></label>
+      <label>奥行き（°） <input name="depth" type="number" step="1"></label>
+      <label>枠・ヘッダー <input name="frame" type="checkbox"></label>
+      <button type="button" id="placement-reset">数値を初期化</button>
+    </fieldset>
+    <details id="appearance-settings">
+      <summary>色・不透明度</summary>
+      <label>手前の文字色 <input name="frontColor" type="text" maxlength="7" spellcheck="false"></label>
+      <label>奥の文字色 <input name="backColor" type="text" maxlength="7" spellcheck="false"></label>
+      <label>不透明度 <input name="logOpacity" type="range" min="0" max="100" step="1">
+        <output id="log-opacity-value"></output>
+      </label>
+      <div id="log-color-picker"></div>
+      <button type="button" id="appearance-reset">色・不透明度を初期化</button>
+    </details>
+    <p id="placement-status" role="status"></p>
+    <button type="submit">保存</button>
+    <button type="button" id="placement-cancel">取消</button>
+  </form>
+  <div id="settings-choice-dialog"></div>
+  <script src="../__origin/js/onesdk.js"></script>
+  <script src="lib/vct_sdk.js"></script>
+  <script src="lib/stage-layout.js"></script>
+  <script src="lib/onecomme-adapter.js"></script>
+  <script src="lib/placement-editor.js"></script>
+  <script src="lib/inline-color-picker/picker.js"></script>
+  <script src="lib/choice-dialog/dialog.js"></script>
+  <script src="config.js"></script>
+  <script src="version.js"></script>
+  <script src="placement.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
