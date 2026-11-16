@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VCT StreamOS</title>
+  <link rel="stylesheet" href="lib/inline-color-picker/picker.css">
+  <link rel="stylesheet" href="lib/choice-dialog/dialog.css">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../__origin/js/onesdk.js"></script>
+  <script defer src="lib/vct_sdk.js"></script>
+  <script defer src="gallery-images.js"></script>
+  <script defer src="lib/inline-color-picker/picker.js"></script>
+  <script defer src="lib/choice-dialog/dialog.js"></script>
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <main id="viewport" aria-label="配信デスクトップ">
+    <div id="desktop">
+      <section id="log" class="log-window" aria-labelledby="title">
+        <header id="handle" class="log-handle">
+          <h1 id="title">コメントログ</h1>
+          <div class="log-actions">
+            <button id="minimize" type="button" aria-label="コメントログを最小化">−</button>
+            <button id="close" type="button" aria-label="ログを閉じる">×</button>
+          </div>
+        </header>
+        <ol id="messages" class="log-messages"></ol>
+      </section>
+      <section id="gift-log" hidden class="log-window" aria-labelledby="gift-title">
+        <header id="gift-handle" class="log-handle">
+          <h1 id="gift-title">ギフトログ</h1>
+          <div class="log-actions">
+            <button id="gift-minimize" type="button" aria-label="ギフトログを最小化">−</button>
+            <button id="gift-close" type="button" aria-label="ギフトログを閉じる">×</button>
+          </div>
+        </header>
+        <ol id="gift-messages" class="log-messages"></ol>
+      </section>
+      <section id="gallery" hidden class="log-window" aria-labelledby="gallery-title">
+        <header id="gallery-handle" class="log-handle">
+          <h1 id="gallery-title">画像フォルダー</h1>
+          <div class="log-actions">
+            <button id="gallery-minimize" type="button" aria-label="画像フォルダーを最小化">−</button>
+            <button id="gallery-close" type="button" aria-label="画像フォルダーを閉じる">×</button>
+          </div>
+        </header>
+        <ul id="gallery-files" aria-label="登録画像"></ul>
+        <p id="gallery-loading" role="status">画像を確認中…</p>
+        <p id="gallery-empty" hidden>登録されている画像はありません。</p>
+      </section>
+      <section id="viewer" hidden class="log-window" aria-labelledby="viewer-title">
+        <header id="viewer-handle" class="log-handle">
+          <h1 id="viewer-title">画像ビューア</h1>
+          <div class="log-actions">
+            <button id="viewer-minimize" type="button" aria-label="画像ビューアを最小化">−</button>
+            <button id="viewer-close" type="button" aria-label="画像ビューアを閉じる">×</button>
+          </div>
+        </header>
+        <div id="viewer-image-area">
+          <img id="viewer-image" alt="">
+          <p id="viewer-error" role="status" hidden>画像を読み込めませんでした。</p>
+        </div>
+        <footer id="viewer-toolbar">
+          <button id="viewer-prev" type="button">前へ</button>
+          <span id="viewer-name"></span>
+          <button id="viewer-next" type="button">次へ</button>
+        </footer>
+      </section>
+      <section id="live-status" hidden class="log-window" aria-labelledby="live-title">
+        <header id="live-handle" class="log-handle">
+          <h1 id="live-title">配信情報</h1>
+          <div class="log-actions">
+            <button id="live-minimize" type="button" aria-label="配信情報を最小化">−</button>
+            <button id="live-close" type="button" aria-label="配信情報を閉じる">×</button>
+          </div>
+        </header>
+        <div class="live-metrics">
+          <div id="live-viewers" class="live-metric" hidden>
+            <span>同接</span>
+            <strong id="live-viewers-value"></strong>
+          </div>
+          <div id="live-likes" class="live-metric" hidden>
+            <span>高評価</span>
+            <strong id="live-likes-value"></strong>
+          </div>
+        </div>
+        <p id="live-empty">配信情報を待っています</p>
+      </section>
+      <section id="notice" role="status" hidden>
+        <header id="notice-handle">システム通知</header>
+        <h2 id="notice-title"></h2>
+        <p id="notice-detail"></p>
+      </section>
+      <footer id="taskbar">
+        <button id="start" type="button" aria-controls="start-menu" aria-expanded="false">StreamOS</button>
+        <button id="task" hidden type="button" aria-controls="log">コメントログ</button>
+        <button id="gift-task" hidden type="button" aria-controls="gift-log">ギフトログ</button>
+        <button id="gallery-task" hidden type="button" aria-controls="gallery">画像フォルダー</button>
+        <button id="viewer-task" hidden type="button" aria-controls="viewer">画像ビューア</button>
+        <button id="live-task" hidden type="button" aria-controls="live-status">配信情報</button>
+        <div class="taskbar-status">
+          <span id="taskbar-viewers" hidden></span>
+          <span id="taskbar-likes" hidden></span>
+          <time id="clock"></time>
+        </div>
+        <div id="settings-area">
+          <button id="settings" type="button" aria-label="設定を開く" aria-controls="controls" aria-expanded="false">⚙</button>
+        </div>
+      </footer>
+      <nav id="start-menu" aria-label="スタートメニュー" hidden>
+        <button id="start-comments" type="button" aria-controls="log">コメントログ</button>
+        <button id="start-gifts" type="button" aria-controls="gift-log">ギフトログ</button>
+        <button id="start-gallery" type="button" aria-controls="gallery">画像フォルダー</button>
+        <button id="start-live" type="button" aria-controls="live-status">配信情報</button>
+        <button id="start-settings" type="button" aria-controls="controls">設定</button>
+        <small class="start-version">VCT StreamOS v0.2.0-alpha.1</small>
+      </nav>
+      <section id="controls" hidden aria-labelledby="panel-title">
+        <header id="panel-handle" class="log-handle">
+          <h1 id="panel-title">コントロールパネル</h1>
+          <div class="log-actions">
+            <button id="dismiss" type="button" aria-label="設定を閉じる">×</button>
+          </div>
+        </header>
+        <nav class="panel-tabs" aria-label="設定の切り替え">
+          <button id="panel-general-tab" type="button" aria-controls="panel-general" aria-pressed="true">共通</button>
+          <button id="panel-events-tab" type="button" aria-controls="panel-events" aria-pressed="false">ログ・通知</button>
+          <button id="panel-windows-tab" type="button" aria-controls="panel-windows" aria-pressed="false">ウィンドウ</button>
+          <button id="panel-appearance-tab" type="button" aria-controls="panel-appearance" aria-pressed="false">外観</button>
+        </nav>
+        <div id="panel-general" class="panel-page">
+          <label class="live-setting"><input id="taskbar-meta" type="checkbox"> タスクバーに配信情報を表示</label>
+          <button id="reset" type="button">位置を戻す</button>
+          <button id="sample" type="button">模擬コメント</button>
+          <button id="gift" type="button">模擬ギフト</button>
+          <label class="wallpaper-setting">
+            配信情報の数値サイズ
+            <input id="live-number-size" type="number" min="28" max="56" step="1" value="44"> px
+          </label>
+          <label class="wallpaper-setting">
+            デスクトップ背景
+            <select id="wallpaper">
+              <option value="teal">青緑</option>
+              <option value="dusk">夕暮れ</option>
+              <option value="slate">スレート</option>
+              <option value="transparent">透明</option>
+            </select>
+          </label>
+        </div>
+        <div id="panel-events" class="panel-page" hidden>
+          <label><input id="log-colors" type="checkbox"> コメントログにイベント色を表示</label>
+          <table>
+            <thead><tr><th scope="col">イベント</th><th scope="col">コメントログ</th><th scope="col">ギフトログ</th><th scope="col">通知</th><th scope="col">ログの色</th></tr></thead>
+            <tbody id="event-rules"></tbody>
+          </table>
+        </div>
+        <div id="panel-windows" class="panel-page zoom-settings" hidden>
+          <p>各ウィンドウのタイトルバー上で Ctrl＋ホイールでも調整できます。</p>
+          <label>コメントログ<span><input id="log-zoom" type="number" min="50" max="150" step="1" value="100"> %</span></label>
+          <label>ギフトログ<span><input id="gift-zoom" type="number" min="50" max="150" step="1" value="100"> %</span></label>
+          <label>画像フォルダー<span><input id="gallery-zoom" type="number" min="50" max="150" step="1" value="100"> %</span></label>
+          <label>画像ビューア<span><input id="viewer-zoom" type="number" min="50" max="150" step="1" value="100"> %</span></label>
+        </div>
+        <div id="panel-appearance" class="panel-page" hidden>
+          <label class="wallpaper-setting">
+            デスクトップテーマ
+            <select id="desktop-theme">
+              <option value="standard">標準</option>
+              <option value="cool">クール</option>
+              <option value="cute">キュート</option>
+              <option value="custom">カスタム</option>
+            </select>
+          </label>
+          <div id="custom-theme-options" hidden>
+            <div class="appearance-grid">
+              <label>土台
+                <select id="custom-theme-base">
+                  <option value="standard">標準</option>
+                  <option value="cool">クール</option>
+                  <option value="cute">キュート</option>
+                </select>
+              </label>
+              <label>書体
+                <select id="custom-theme-font">
+                  <option value="base">土台に合わせる</option>
+                  <option value="sans">ゴシック</option>
+                  <option value="round">丸ゴシック</option>
+                  <option value="mono">等幅</option>
+                </select>
+              </label>
+              <label>角
+                <select id="custom-theme-corners">
+                  <option value="base">土台に合わせる</option>
+                  <option value="square">四角</option>
+                  <option value="soft">控えめ</option>
+                  <option value="round">大きな丸み</option>
+                </select>
+              </label>
+            </div>
+            <div class="appearance-grid" id="appearance-colors">
+              <label>タイトルバー<input type="text" maxlength="7" data-color="header"></label>
+              <label>タスクバー<input type="text" maxlength="7" data-color="chrome"></label>
+              <label>ウィンドウの地色<input type="text" maxlength="7" data-color="surface"></label>
+              <label>本文の文字色<input type="text" maxlength="7" data-color="surface-text"></label>
+              <label>枠線<input type="text" maxlength="7" data-color="frame"></label>
+            </div>
+            <div class="appearance-actions">
+              <select id="custom-preset-slot" aria-label="プリセットの保存先">
+                <option value="0">プリセット 1</option>
+                <option value="1">プリセット 2</option>
+                <option value="2">プリセット 3</option>
+              </select>
+              <button id="load-custom-preset" type="button" disabled>呼び出す</button>
+              <button id="save-custom-preset" type="button">保存</button>
+              <button id="reset-custom-theme" type="button">土台の外観に戻す</button>
+            </div>
+          </div>
+        </div>
+        <footer class="panel-status">
+          <span id="save-status" role="status"></span>
+          <span id="connection" role="status"></span>
+        </footer>
+      </section>
+      <div id="appearance-picker"></div>
+      <div id="settings-choice-dialog"></div>
+    </div>
+  </main>
+</body>
+</html>
