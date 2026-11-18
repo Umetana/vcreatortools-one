@@ -16,7 +16,7 @@ button { font: inherit; cursor: pointer; }
 
 #controls {
   position: absolute;
-  z-index: 7;
+  z-index: 8;
   left: 1060px;
   top: 380px;
   width: 800px;
@@ -44,7 +44,10 @@ button { font: inherit; cursor: pointer; }
 
 .panel-page { flex: 1; min-height: 0; overflow: auto; padding: 12px 16px; }
 .wallpaper-setting { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
-#wallpaper { font: inherit; }
+#wallpaper, #wallpaper-image, #wallpaper-fit { font: inherit; }
+#wallpaper-picture { position: absolute; inset: 0; pointer-events: none; }
+#wallpaper-picture img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#wallpaper-picture[data-fit="contain"] img { object-fit: contain; }
 .panel-page table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 20px; }
 .panel-page th, .panel-page td { padding: 3px 8px; border-bottom: 1px solid var(--ui-divider); }
 .panel-page td { text-align: center; }
@@ -220,7 +223,7 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 
 #notice {
   position: absolute;
-  z-index: 6;
+  z-index: 7;
   right: 44px;
   bottom: 100px;
   width: 530px;
@@ -270,6 +273,28 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 .taskbar-status { margin-left: auto; display: flex; gap: 16px; align-items: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .taskbar-status span { font-size: 20px; color: var(--ui-chrome-muted); }
 #live-status { width: 420px; height: 190px; }
+#clock-gadget { width: 420px; height: 238px; }
+.clock-gadget-body {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  flex: 1;
+  gap: 5px;
+  padding: 8px;
+  overflow: auto;
+}
+#clock-gadget-label { font-size: 18px; }
+#clock-gadget-value { font-size: 48px; font-variant-numeric: tabular-nums; }
+.clock-gadget-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.clock-gadget-actions button {
+  padding: 3px 7px;
+  font-size: 17px;
+  color: var(--ui-surface-text);
+  background: var(--ui-button-light);
+  border: 1px solid var(--ui-frame);
+  border-radius: var(--ui-button-radius);
+}
+.clock-options { font-size: 20px; }
 .live-metrics { display: flex; gap: 12px; padding: 10px 16px; }
 .live-metrics:has(.live-metric[hidden] + .live-metric[hidden]) { display: none; }
 .live-metric {
@@ -299,7 +324,7 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 
 #start-menu {
   position: absolute;
-  z-index: 8;
+  z-index: 9;
   left: 30px;
   bottom: 66px;
   width: 300px;
@@ -384,15 +409,25 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 
 #viewer-image { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
 
+#viewer.maximized .window-resize { display: none; }
+
 #viewer-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 8px 12px;
-  font-size: 22px;
+  display: grid;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 18px;
 }
 
-#viewer-toolbar button { padding: 6px 12px; }
+.viewer-navigation, .viewer-slideshow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.viewer-slideshow { justify-content: center; }
+.viewer-slideshow label { white-space: nowrap; }
+#viewer-interval { width: 62px; font: inherit; }
+#viewer-toolbar button { padding: 2px 8px; }
 #viewer-toolbar button:disabled { opacity: .45; cursor: default; }
 #viewer-name { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -435,7 +470,7 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 
 #appearance-picker {
   position: absolute;
-  z-index: 7;
+  z-index: 8;
   width: 420px;
 }
 #appearance-picker .vct-icp-panel { margin: 0; box-shadow: 0 16px 36px #09172780; }
@@ -444,3 +479,52 @@ body.transparent-wallpaper, #desktop[data-wallpaper="transparent"] {
 
 #settings-choice-dialog .vct-cd-dialog { max-height: 720px; }
 #controls .vct-cd-trigger { padding-right: 30px; min-width: 0; }
+
+.log-badge { width: 1em; height: 1em; object-fit: contain; vertical-align: middle; margin-right: .2em; }
+.log-options { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0; border: 1px solid var(--ui-frame); }
+.log-options input[type="number"] { width: 80px; font: inherit; }
+.window-resize { position: absolute; z-index: 1; touch-action: none; }
+.resize-n, .resize-s { left: 10px; right: 10px; height: 7px; cursor: ns-resize; }
+.resize-n { top: 0; } .resize-s { bottom: 0; }
+.resize-e, .resize-w { top: 10px; bottom: 10px; width: 7px; cursor: ew-resize; }
+.resize-e { right: 0; } .resize-w { left: 0; }
+.resize-ne, .resize-nw, .resize-se, .resize-sw { width: 12px; height: 12px; }
+.resize-ne, .resize-sw { cursor: nesw-resize; }
+.resize-nw, .resize-se { cursor: nwse-resize; }
+.resize-ne { top: 0; right: 0; } .resize-nw { top: 0; left: 0; }
+.resize-se { bottom: 0; right: 0; } .resize-sw { bottom: 0; left: 0; }
+
+/* OBSの対話ではカーソルの形が変わらない場合があるため、枠に目印を出す。 */
+.resize-ne::after, .resize-nw::after, .resize-se::after, .resize-sw::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid #142837;
+  border-radius: 2px;
+  background: #f4fbff;
+  opacity: 0;
+  pointer-events: none;
+}
+.show-resize-guides .log-window:hover .window-resize::after,
+.show-resize-guides .window-resize:active::after { opacity: 1; }
+.show-resize-guides .window-resize:hover,
+.show-resize-guides .window-resize:active { background: #40aaff; }
+
+#stream-pointer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 300001;
+  width: 26px;
+  height: 32px;
+  pointer-events: none;
+  background: #101820;
+  clip-path: polygon(0 0, 100% 63%, 62% 70%, 78% 93%, 59% 100%, 38% 77%, 0 97%);
+}
+#stream-pointer::after {
+  content: "";
+  position: absolute;
+  inset: 3px 4px 3px 3px;
+  background: #fff;
+  clip-path: polygon(0 0, 100% 63%, 59% 69%, 78% 94%, 64% 100%, 40% 73%, 0 96%);
+}

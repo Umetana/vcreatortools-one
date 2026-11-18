@@ -8,6 +8,7 @@
   const galleryDefaults = { x: 240, y: 220, open: false };
   const viewerDefaults = { x: 720, y: 150, open: false };
   const liveDefaults = { x: 1120, y: 104, open: false };
+  const clockDefaults = { x: 1370, y: 104, open: false };
   const storageKey = 'vct.streamos.layout.v1';
   const byId = id => document.getElementById(id);
   const viewport = byId('viewport');
@@ -21,6 +22,9 @@
   const giftTask = byId('gift-task');
   const logColors = byId('log-colors');
   const wallpaper = byId('wallpaper');
+  const wallpaperImage = byId('wallpaper-image');
+  const wallpaperPicture = byId('wallpaper-picture');
+  const wallpaperImageStatus = byId('wallpaper-image-status');
   const notice = byId('notice');
   const noticeHandle = byId('notice-handle');
   const controls = byId('controls');
@@ -30,7 +34,6 @@
   const task = byId('task');
   const saveStatus = byId('save-status');
   const connection = byId('connection');
-  const clockFormat = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' });
   const gallery = byId('gallery');
   const viewer = byId('viewer');
   const viewerImage = byId('viewer-image');
@@ -39,15 +42,27 @@
     .filter(entry => typeof entry?.file === 'string' && /^[^/\\:%?#]+\.(png|jpe?g|webp|gif|avif)$/i.test(entry.file));
   let images = registeredImages;
   let galleryReady = false;
-  // 手前から奥への順序。前面化したウィンドウだけ先頭へ移す。
   const liveStatus = byId('live-status');
   const windows = [
-    { box: log, task, state: () => layout },
-    { box: giftLog, task: giftTask, state: () => layout.gift },
-    { box: gallery, task: byId('gallery-task'), state: () => layout.gallery },
-    { box: viewer, task: byId('viewer-task'), state: () => layout.viewer },
-    { box: liveStatus, task: byId('live-task'), state: () => layout.liveStatus }
+    { key: null, box: log, task, state: () => layout, size: [640, 440],
+      handle, minimize: byId('minimize'), close: byId('close'), launcher: byId('start-comments'), zoomInput: byId('log-zoom') },
+    { key: 'gift', box: giftLog, task: giftTask, state: () => layout.gift, size: [640, 440],
+      handle: byId('gift-handle'), minimize: byId('gift-minimize'), close: byId('gift-close'), launcher: byId('start-gifts'), zoomInput: byId('gift-zoom') },
+    { key: 'gallery', box: gallery, task: byId('gallery-task'), state: () => layout.gallery, size: [640, 440],
+      handle: byId('gallery-handle'), minimize: byId('gallery-minimize'), close: byId('gallery-close'), launcher: byId('start-gallery'), zoomInput: byId('gallery-zoom') },
+    { key: 'viewer', box: viewer, task: byId('viewer-task'), state: () => layout.viewer, size: [900, 660],
+      handle: byId('viewer-handle'), minimize: byId('viewer-minimize'), maximize: byId('viewer-maximize'), close: byId('viewer-close'), onHide: stopSlideshow, zoomInput: byId('viewer-zoom'), ready: () => galleryReady },
+    { key: 'liveStatus', box: liveStatus, task: byId('live-task'), state: () => layout.liveStatus, size: [420, 190],
+      handle: byId('live-handle'), minimize: byId('live-minimize'), close: byId('live-close'), launcher: byId('start-live') },
+    { key: 'clockGadget', box: byId('clock-gadget'), task: byId('clock-gadget-task'), state: () => layout.clockGadget,
+      size: [420, 238], handle: byId('clock-gadget-handle'), minimize: byId('clock-gadget-minimize'),
+      close: byId('clock-gadget-close'), launcher: byId('start-clock') }
   ];
+  const windowManager = window.StreamOSWindowManager.create({
+    width, height, windows, getScale: () => scale, renderLayout, commitLayout,
+    onLaunch: () => setStartOpen(false), onClose: () => start.focus()
+  });
+  const { position, windowPlacement } = windowManager;
   const eventTypes = [
     ['superchat', 'スパチャ', true, true],
     ['supersticker', 'スーパーステッカー', true, true],
@@ -80,48 +95,39 @@
   const pendingNotices = [];
   let noticeTimer;
   let scale = 1;
-  let drag;
-  let pendingFrame;
-  const minimizing = new Set();
 
-  function position(x, y, boxWidth = 640, boxHeight = 440) {
+  function logOptions(saved) {
     return {
-      x: Math.round(Math.max(0, Math.min(width - boxWidth, x))),
-      y: Math.round(Math.max(0, Math.min(height - 66 - boxHeight, y)))
-    };
-  }
-
-  function windowZoom(value) {
-    return Number.isFinite(value) ? Math.min(150, Math.max(50, Math.round(value))) : 100;
-  }
-
-  function windowPlacement(saved, boxWidth = 640, boxHeight = 440) {
-    const zoom = windowZoom(saved.zoom);
-    return {
-      ...position(saved.x, saved.y, boxWidth * zoom / 100, boxHeight * zoom / 100),
-      open: saved.open,
-      minimized: saved.open && saved.minimized === true,
-      zoom
+      fontSize: Number.isFinite(saved?.fontSize) ? Math.min(48, Math.max(16, Math.round(saved.fontSize))) : 26,
+      limit: Number.isFinite(saved?.limit) ? Math.min(100, Math.max(1, Math.round(saved.limit))) : 8,
+      badges: saved?.badges === true
     };
   }
 
   function loadLayout() {
     const restored = {
-      ...defaults, gift: { ...giftDefaults }, gallery: { ...galleryDefaults },
-      viewer: { ...viewerDefaults }, liveStatus: { ...liveDefaults }, taskbarMeta: true, theme: 'standard', customTheme: loadCustomTheme(), customPresets: presetSlots.map(() => null), liveNumberSize: 44, imageFile: null, giftColors: false, wallpaper: 'teal', eventRules: {}
+      ...defaults, logs: { comments: logOptions(), gifts: logOptions() }, gift: { ...giftDefaults }, gallery: { ...galleryDefaults },
+      viewer: { ...viewerDefaults }, liveStatus: { ...liveDefaults }, clockGadget: { ...clockDefaults },
+      clock: window.StreamOSClock.restore(), taskbarMeta: true, showStreamPointer: false, showResizeGuides: true, theme: 'standard', customTheme: loadCustomTheme(), customPresets: presetSlots.map(() => null), liveNumberSize: 44, imageFile: null, slideshowSeconds: 5, giftColors: false, wallpaper: 'teal', wallpaperFile: '', wallpaperFit: 'cover', eventRules: {}
     };
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey));
       if (Number.isFinite(saved?.x) && Number.isFinite(saved?.y) && typeof saved.open === 'boolean') {
-        Object.assign(restored, windowPlacement(saved));
+        for (const { key, size } of windows) {
+          const state = key === null ? saved : saved[key];
+          if (Number.isFinite(state?.x) && Number.isFinite(state?.y) && typeof state.open === 'boolean') {
+            const placement = windowPlacement(state, ...size);
+            if (key === null) Object.assign(restored, placement);
+            else restored[key] = placement;
+          }
+        }
+        if (Number.isFinite(saved.slideshowSeconds)) {
+          restored.slideshowSeconds = slideshowSeconds(saved.slideshowSeconds);
+        }
+        restored.clock = window.StreamOSClock.restore(saved.clock);
+        restored.logs = { comments: logOptions(saved.logs?.comments), gifts: logOptions(saved.logs?.gifts) };
         if (Number.isFinite(saved.notice?.x) && Number.isFinite(saved.notice?.y)) {
           restored.notice = { x: saved.notice.x, y: saved.notice.y };
-        }
-        for (const [key, boxWidth, boxHeight] of [['gift', 640, 440], ['gallery', 640, 440], ['viewer', 900, 660], ['liveStatus', 420, 190]]) {
-          const state = saved[key];
-          if (Number.isFinite(state?.x) && Number.isFinite(state?.y) && typeof state.open === 'boolean') {
-            restored[key] = windowPlacement(state, boxWidth, boxHeight);
-          }
         }
         restored.imageFile = typeof saved.imageFile === 'string'
           ? saved.imageFile
@@ -147,10 +153,14 @@
         restored.customThemeStarted = saved.customThemeStarted === true || restored.theme === 'custom';
         if (Number.isFinite(saved.liveNumberSize)) restored.liveNumberSize = liveNumberSize(saved.liveNumberSize);
         restored.taskbarMeta = saved.taskbarMeta !== false;
+        restored.showStreamPointer = saved.showStreamPointer === true;
+        restored.showResizeGuides = saved.showResizeGuides !== false;
         restored.giftColors = saved.giftColors === true;
-        if (['teal', 'dusk', 'slate', 'transparent'].includes(saved.wallpaper)) {
+        if (['teal', 'dusk', 'slate', 'transparent', 'image'].includes(saved.wallpaper)) {
           restored.wallpaper = saved.wallpaper;
         }
+        if (typeof saved.wallpaperFile === 'string') restored.wallpaperFile = saved.wallpaperFile;
+        if (saved.wallpaperFit === 'contain') restored.wallpaperFit = 'contain';
       }
     } catch {
       // 初回起動や保存領域が利用できない環境では初期配置を使う。
@@ -177,6 +187,29 @@
     settingsChoice?.refresh(wallpaper);
     desktop.dataset.wallpaper = layout.wallpaper;
     document.body.classList.toggle('transparent-wallpaper', layout.wallpaper === 'transparent');
+
+    const useImage = layout.wallpaper === 'image';
+    const entry = galleryReady && images.find(item => item.file === layout.wallpaperFile);
+    byId('wallpaper-image-setting').hidden = !useImage;
+    wallpaperImage.value = entry ? entry.file : '';
+    settingsChoice?.refresh(wallpaperImage);
+    wallpaperPicture.replaceChildren();
+    wallpaperImageStatus.hidden = true;
+    if (!useImage || !galleryReady) return;
+    if (!entry) {
+      wallpaperImageStatus.hidden = !layout.wallpaperFile;
+      return;
+    }
+
+    const image = document.createElement('img');
+    image.alt = '';
+    image.hidden = true;
+    image.onload = () => { image.hidden = false; };
+    image.onerror = () => {
+      if (wallpaperPicture.firstChild === image) wallpaperImageStatus.hidden = false;
+    };
+    wallpaperPicture.append(image);
+    image.src = imageUrl(entry);
   }
 
   function resize() {
@@ -190,9 +223,7 @@
     controls.style.left = layout.panel ? `${layout.panel.x}px` : '';
     controls.style.top = layout.panel ? `${layout.panel.y}px` : '';
     positionColorPicker();
-    for (const app of windows) {
-      if (app.box !== viewer || galleryReady) renderWindow(app.box, app.task, app.state());
-    }
+    windowManager.render();
     if (!notice.hidden) {
       const placement = layout.notice && position(layout.notice.x, layout.notice.y, notice.offsetWidth, notice.offsetHeight);
       notice.style.left = placement ? `${placement.x}px` : '';
@@ -201,29 +232,29 @@
     }
   }
 
-  function renderWindow(box, button, placement) {
-    const zoom = (placement.zoom ?? 100) / 100;
-    const size = box === viewer ? [900, 660] : box === liveStatus ? [420, 190] : [640, 440];
-    const point = position(placement.x, placement.y, size[0] * zoom, size[1] * zoom);
-    box.style.left = `${point.x}px`;
-    box.style.top = `${point.y}px`;
-    box.style.scale = String(zoom);
-    box.hidden = !placement.open || (placement.minimized === true && !minimizing.has(box));
-    box.inert = Boolean(placement.minimized);
-    button.classList.toggle('minimized', Boolean(placement.minimized));
-    button.hidden = !placement.open;
-  }
-
   function renderComments() {
-    renderRows(messages, comments, layout.giftColors);
-    renderRows(giftMessages, gifts, true);
+    renderRows(messages, comments, layout.giftColors, layout.logs.comments);
+    renderRows(giftMessages, gifts, true, layout.logs.gifts);
   }
 
-  function renderRows(list, entries, showGiftColors) {
-    const rows = entries.map(({ name, body, parts, color, kind }) => {
+  function renderRows(list, entries, showGiftColors, options) {
+    list.style.fontSize = `${options.fontSize}px`;
+    const rows = entries.map(({ name, body, parts, color, kind, badges }) => {
       const row = document.createElement('li');
       const author = document.createElement('strong');
       author.textContent = name;
+      if (options.badges) {
+        for (const badge of (badges ?? []).slice(0, 8)) {
+          if (!/^https?:\/\//i.test(badge.url)) continue;
+          const image = document.createElement('img');
+          image.className = 'log-badge';
+          image.alt = badge.label || 'バッジ';
+          image.title = image.alt;
+          image.onerror = () => image.remove();
+          image.src = badge.url;
+          row.append(image);
+        }
+      }
       row.append(author);
       if (parts) appendMessageParts(row, parts);
       else row.append(document.createTextNode(body));
@@ -338,8 +369,8 @@
 
   function addComments(rows) {
     if (!rows.length) return;
-    comments = comments.concat(rows.filter(row => !row.kind || eventRule(row.kind).comments)).slice(-8);
-    gifts = gifts.concat(rows.filter(row => row.kind && eventRule(row.kind).gifts)).slice(-8);
+    comments = comments.concat(rows.filter(row => !row.kind || eventRule(row.kind).comments)).slice(-layout.logs.comments.limit);
+    gifts = gifts.concat(rows.filter(row => row.kind && eventRule(row.kind).gifts)).slice(-layout.logs.gifts.limit);
     for (const row of rows) {
       if (!row.kind || !eventRule(row.kind).notice) continue;
       const title = row.kind === 'member_join' ? '新しいメンバーが加入しました'
@@ -349,47 +380,6 @@
       enqueueNotice(title, detail, row.color);
     }
     renderComments();
-  }
-
-  function enableDrag(handle, box, applyPosition) {
-    handle.addEventListener('pointerdown', event => {
-      if (drag || event.button !== 0 || !scale || event.target.closest('button')) return;
-      handle.setPointerCapture(event.pointerId);
-      if (box === notice) clearTimeout(noticeTimer);
-      drag = {
-        id: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        x: box.offsetLeft,
-        y: box.offsetTop,
-        scale
-      };
-    });
-    handle.addEventListener('pointermove', event => {
-      if (drag?.id !== event.pointerId) return;
-      const next = position(
-        drag.x + (event.clientX - drag.startX) / drag.scale,
-        drag.y + (event.clientY - drag.startY) / drag.scale,
-        box.offsetWidth * Number(box.style.scale || 1),
-        box.offsetHeight * Number(box.style.scale || 1)
-      );
-      applyPosition(next);
-      if (pendingFrame !== undefined) return;
-      pendingFrame = requestAnimationFrame(() => {
-        pendingFrame = undefined;
-        renderLayout();
-      });
-    });
-    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-      handle.addEventListener(type, event => {
-        if (drag?.id !== event.pointerId) return;
-        drag = undefined;
-        if (pendingFrame !== undefined) cancelAnimationFrame(pendingFrame);
-        pendingFrame = undefined;
-        commitLayout();
-        if (box === notice) scheduleNoticeEnd();
-      });
-    }
   }
 
   function metaCount(value) {
@@ -480,7 +470,7 @@
             const name = user.displayName.slice(0, 40);
             const label = special ? event.displayLabel : '';
             const parts = messageParts(message, label, special ? event.announcementText : '', event.isSupport ? monetization.gift.imageUrl : '');
-            rows.push({ name, parts, kind: special ? kind : null, label, color: special ? style.color : null });
+            rows.push({ name, parts, badges: user.badges, kind: special ? kind : null, label, color: special ? style.color : null });
           }
           connection.textContent = 'わんコメ受信中';
           addComments(rows);
@@ -537,107 +527,6 @@
     }
   });
 
-  function focusWindow(box) {
-    const index = windows.findIndex(app => app.box === box);
-    if (index > 0) {
-      const [app] = windows.splice(index, 1);
-      windows.unshift(app);
-    }
-    for (const [depth, app] of windows.entries()) {
-      app.box.style.zIndex = windows.length - depth;
-      const active = app.box === box;
-      app.box.classList.toggle('active', active);
-      app.task.setAttribute('aria-pressed', String(active));
-    }
-  }
-
-  function frontVisibleWindow() {
-    return windows.find(app => (app.box !== viewer || galleryReady) && app.state().open && !app.state().minimized)?.box ?? null;
-  }
-
-  function enableWindow({ box, task: button, state: placement }, dragHandle, minimize, close, launcher) {
-    let animation;
-
-    function stopAnimation() {
-      animation?.cancel();
-      animation = undefined;
-      minimizing.delete(box);
-    }
-
-    function animateWindow(hiding) {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !scale || typeof box.animate !== 'function') return;
-      const from = box.getBoundingClientRect();
-      const target = button.getBoundingClientRect();
-      const animationScale = scale * (placement().zoom ?? 100) / 100;
-      const x = (target.left + target.width / 2 - from.left - from.width * 0.09) / animationScale;
-      const y = (target.top + target.height / 2 - from.top - from.height * 0.09) / animationScale;
-      const normal = { transform: 'none', opacity: 1 };
-      const tucked = { transform: `translate(${x}px, ${y}px) scale(0.18)`, opacity: 0 };
-      const current = box.animate(hiding ? [normal, tucked] : [tucked, normal], { duration: 180, easing: 'ease-out' });
-      animation = current;
-      current.onfinish = () => {
-        if (animation !== current) return;
-        stopAnimation();
-        renderLayout();
-      };
-    }
-
-    function restore() {
-      const state = placement();
-      const wasMinimized = state.minimized;
-      stopAnimation();
-      state.open = true;
-      state.minimized = false;
-      focusWindow(box);
-      commitLayout();
-      if (wasMinimized) animateWindow(false);
-    }
-
-    box.addEventListener('pointerdown', () => focusWindow(box));
-    button.onclick = () => {
-      if (placement().minimized) restore();
-      else if (box.classList.contains('active')) minimizeWindow();
-      else focusWindow(box);
-    };
-    if (launcher) {
-      launcher.onclick = () => {
-        restore();
-        setStartOpen(false);
-        button.focus();
-      };
-    }
-    function minimizeWindow() {
-      const state = placement();
-      if (!state.open || state.minimized) return;
-      stopAnimation();
-      animateWindow(true);
-      if (animation) minimizing.add(box);
-      state.minimized = true;
-      if (box.classList.contains('active')) focusWindow(frontVisibleWindow());
-      commitLayout();
-      button.focus();
-    }
-    minimize.onclick = minimizeWindow;
-    close.onclick = () => {
-      stopAnimation();
-      const state = placement();
-      state.open = false;
-      state.minimized = false;
-      if (box.classList.contains('active')) focusWindow(frontVisibleWindow());
-      commitLayout();
-      start.focus();
-    };
-    enableDrag(dragHandle, box, next => Object.assign(placement(), next));
-    return restore;
-  }
-
-  enableWindow(windows[0], handle, byId('minimize'), byId('close'), byId('start-comments'));
-  enableWindow(windows[1], byId('gift-handle'), byId('gift-minimize'), byId('gift-close'), byId('start-gifts'));
-  enableWindow(windows[2], byId('gallery-handle'), byId('gallery-minimize'), byId('gallery-close'), byId('start-gallery'));
-  const openViewer = enableWindow(windows[3], byId('viewer-handle'), byId('viewer-minimize'), byId('viewer-close'));
-
-  enableWindow(windows[4], byId('live-handle'), byId('live-minimize'), byId('live-close'), byId('start-live'));
-
   function imageUrl(entry) {
     return 'gallery/' + encodeURIComponent(entry.file);
   }
@@ -655,6 +544,7 @@
     byId('viewer-name').textContent = title;
     byId('viewer-prev').disabled = index === 0;
     byId('viewer-next').disabled = index === images.length - 1;
+    byId('viewer-play').disabled = images.length < 2;
   }
 
   viewerImage.onerror = () => {
@@ -664,11 +554,54 @@
   byId('viewer-prev').onclick = () => {
     showImage(selectedImage - 1);
     commitLayout();
+    if (slideshowTimer !== undefined) scheduleSlideshow();
   };
   byId('viewer-next').onclick = () => {
     showImage(selectedImage + 1);
     commitLayout();
+    if (slideshowTimer !== undefined) scheduleSlideshow();
   };
+  const slideshowButton = byId('viewer-play');
+  const slideshowInterval = byId('viewer-interval');
+  let slideshowTimer;
+  slideshowInterval.value = layout.slideshowSeconds;
+
+  function slideshowSeconds(value) {
+    return Math.min(120, Math.max(1, Math.round(value)));
+  }
+
+  function stopSlideshow() {
+    clearTimeout(slideshowTimer);
+    slideshowTimer = undefined;
+    slideshowButton.textContent = 'スライドショー開始';
+  }
+
+  function scheduleSlideshow() {
+    clearTimeout(slideshowTimer);
+    slideshowTimer = setTimeout(() => {
+      showImage((selectedImage + 1) % images.length);
+      commitLayout();
+      scheduleSlideshow();
+    }, layout.slideshowSeconds * 1000);
+  }
+
+  slideshowButton.onclick = () => {
+    if (slideshowTimer !== undefined) {
+      stopSlideshow();
+    } else if (images.length > 1 && layout.viewer.open && !layout.viewer.minimized) {
+      slideshowButton.textContent = 'スライドショー停止';
+      scheduleSlideshow();
+    }
+  };
+
+  slideshowInterval.onchange = () => {
+    const value = slideshowInterval.valueAsNumber;
+    if (Number.isFinite(value)) layout.slideshowSeconds = slideshowSeconds(value);
+    slideshowInterval.value = layout.slideshowSeconds;
+    if (slideshowTimer !== undefined) scheduleSlideshow();
+    commitLayout();
+  };
+
   function probeImage(file) {
     return new Promise(resolve => {
       const image = new Image();
@@ -702,13 +635,23 @@
       button.append(thumb, title);
       button.onclick = () => {
         showImage(index);
-        openViewer();
+        if (slideshowTimer !== undefined) scheduleSlideshow();
+        windowManager.open(viewer);
         byId('viewer-task').focus();
       };
       item.append(button);
       byId('gallery-files').append(item);
     }
     galleryReady = true;
+    wallpaperImage.options[0].textContent = images.length ? '画像を選ぶ' : '登録画像がありません';
+    for (const entry of images) {
+      const option = document.createElement('option');
+      option.value = entry.file;
+      option.textContent = entry.title || entry.file;
+      wallpaperImage.append(option);
+    }
+    wallpaperImage.disabled = !images.length;
+    applyWallpaper();
     if (layout.viewer.open) {
       const index = layout.imageFile === null ? 0 : images.findIndex(entry => entry.file === layout.imageFile);
       if (images[index]) showImage(index);
@@ -718,12 +661,12 @@
       }
     }
     renderLayout();
-    if (!windows.some(app => app.box.classList.contains('active'))) focusWindow(frontVisibleWindow());
+    windowManager.ensureFocus();
   }
 
   loadGallery();
 
-  focusWindow(frontVisibleWindow());
+  windowManager.mount();
   const themeSelect = byId('desktop-theme');
   const numberSizeInput = byId('live-number-size');
   const customOptions = byId('custom-theme-options');
@@ -890,6 +833,53 @@
     commitLayout();
   };
 
+  const resizeGuideSetting = byId('resize-guides-enabled');
+  resizeGuideSetting.checked = layout.showResizeGuides;
+  desktop.classList.toggle('show-resize-guides', layout.showResizeGuides);
+  resizeGuideSetting.onchange = () => {
+    layout.showResizeGuides = resizeGuideSetting.checked;
+    desktop.classList.toggle('show-resize-guides', layout.showResizeGuides);
+    commitLayout();
+  };
+
+  const streamPointer = byId('stream-pointer');
+  const pointerSetting = byId('stream-pointer-enabled');
+  let pointerTimer;
+
+  function hideStreamPointer() {
+    clearTimeout(pointerTimer);
+    streamPointer.hidden = true;
+  }
+
+  pointerSetting.checked = layout.showStreamPointer;
+  pointerSetting.onchange = () => {
+    layout.showStreamPointer = pointerSetting.checked;
+    hideStreamPointer();
+    commitLayout();
+  };
+
+  desktop.addEventListener('pointermove', event => {
+    if (!layout.showStreamPointer || event.pointerType !== 'mouse' || !scale) return;
+    const bounds = desktop.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / scale;
+    const y = (event.clientY - bounds.top) / scale;
+    // ドラッグ中はポインターが画面外に出てもイベントが届く。
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+      hideStreamPointer();
+      return;
+    }
+    streamPointer.style.transform = `translate(${x}px, ${y}px)`;
+    streamPointer.hidden = false;
+    clearTimeout(pointerTimer);
+    pointerTimer = setTimeout(hideStreamPointer, 2500);
+  });
+  desktop.addEventListener('pointerleave', hideStreamPointer);
+  desktop.addEventListener('pointercancel', hideStreamPointer);
+  window.addEventListener('blur', hideStreamPointer);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) hideStreamPointer();
+  });
+
   const taskbarMeta = byId('taskbar-meta');
   taskbarMeta.checked = layout.taskbarMeta;
   taskbarMeta.onchange = () => {
@@ -904,9 +894,24 @@
     applyWallpaper();
     commitLayout();
   };
+  const wallpaperFit = byId('wallpaper-fit');
+  wallpaperFit.value = layout.wallpaperFit;
+  wallpaperPicture.dataset.fit = layout.wallpaperFit;
+  wallpaperFit.onchange = () => {
+    layout.wallpaperFit = wallpaperFit.value;
+    wallpaperPicture.dataset.fit = layout.wallpaperFit;
+    commitLayout();
+  };
+  wallpaperImage.onchange = () => {
+    layout.wallpaperFile = wallpaperImage.value;
+    applyWallpaper();
+    commitLayout();
+  };
   if (settingsChoice) {
     for (const [id, label] of [
       ['wallpaper', 'デスクトップ背景'],
+      ['wallpaper-image', '壁紙の画像'],
+      ['wallpaper-fit', '壁紙の表示方法'],
       ['desktop-theme', 'デスクトップテーマ'],
       ['custom-theme-base', '土台'],
       ['custom-theme-font', '書体'],
@@ -936,35 +941,33 @@
       }
     };
   }
-  for (const [id, zoomHandle, state, boxWidth, boxHeight] of [
-    ['log-zoom', handle, () => layout, 640, 440],
-    ['gift-zoom', byId('gift-handle'), () => layout.gift, 640, 440],
-    ['gallery-zoom', byId('gallery-handle'), () => layout.gallery, 640, 440],
-    ['viewer-zoom', byId('viewer-handle'), () => layout.viewer, 900, 660]
-  ]) {
-    const input = byId(id);
-    input.value = state().zoom ?? 100;
-
-    function setZoom(value) {
-      const placement = state();
-      const current = placement.zoom ?? 100;
-      const zoom = Number.isFinite(value) ? windowZoom(value) : current;
-      input.value = zoom;
-      if (zoom === current) return;
-      placement.zoom = zoom;
-      Object.assign(placement, position(placement.x, placement.y, boxWidth * zoom / 100, boxHeight * zoom / 100));
+  for (const [key, prefix] of [['comments', 'comment'], ['gifts', 'gift']]) {
+    const font = byId(`${prefix}-font-size`);
+    const limit = byId(`${prefix}-log-limit`);
+    const badges = byId(`${prefix}-badges`);
+    const refresh = () => {
+      font.value = layout.logs[key].fontSize;
+      limit.value = layout.logs[key].limit;
+      badges.checked = layout.logs[key].badges;
+    };
+    refresh();
+    const update = () => {
+      layout.logs[key] = logOptions({
+        fontSize: Number.isFinite(font.valueAsNumber) ? font.valueAsNumber : layout.logs[key].fontSize,
+        limit: Number.isFinite(limit.valueAsNumber) ? limit.valueAsNumber : layout.logs[key].limit,
+        badges: badges.checked
+      });
+      comments = comments.slice(-layout.logs.comments.limit);
+      gifts = gifts.slice(-layout.logs.gifts.limit);
+      refresh();
+      renderComments();
       commitLayout();
-    }
-
-    input.onchange = () => setZoom(input.valueAsNumber);
-    zoomHandle.addEventListener('wheel', event => {
-      if (!event.ctrlKey || !event.deltaY) return;
-      event.preventDefault();
-      if (drag) return;
-      const step = event.deltaY < 0 ? 5 : -5;
-      setZoom((state().zoom ?? 100) + step);
-    }, { passive: false });
+    };
+    font.onchange = update;
+    limit.onchange = update;
+    badges.onchange = update;
   }
+  renderComments();
   for (const [kind, label] of eventTypes) {
     const row = document.createElement('tr');
     const title = document.createElement('th');
@@ -988,7 +991,7 @@
     }
     byId('event-rules').append(row);
   }
-  enableDrag(byId('panel-handle'), controls, next => { layout.panel = next; });
+  windowManager.enableDrag(byId('panel-handle'), controls, next => { layout.panel = next; });
   logColors.checked = layout.giftColors;
   logColors.onchange = () => {
     layout.giftColors = logColors.checked;
@@ -998,24 +1001,33 @@
   byId('reset').onclick = () => {
     layout = {
       ...defaults,
+      logs: layout.logs,
       minimized: layout.minimized,
       zoom: layout.zoom,
-      gift: { ...giftDefaults, open: layout.gift.open, minimized: layout.gift.minimized, zoom: layout.gift.zoom },
+      width: layout.width, height: layout.height,
+      gift: { ...giftDefaults, open: layout.gift.open, minimized: layout.gift.minimized, zoom: layout.gift.zoom, width: layout.gift.width, height: layout.gift.height },
       gallery: { ...layout.gallery, x: galleryDefaults.x, y: galleryDefaults.y },
       viewer: { ...layout.viewer, x: viewerDefaults.x, y: viewerDefaults.y },
       liveStatus: { ...layout.liveStatus, x: liveDefaults.x, y: liveDefaults.y },
+      clockGadget: { ...layout.clockGadget, x: clockDefaults.x, y: clockDefaults.y },
+      clock: layout.clock,
       taskbarMeta: layout.taskbarMeta,
+      showStreamPointer: layout.showStreamPointer,
+      showResizeGuides: layout.showResizeGuides,
       theme: layout.theme,
       customTheme: layout.customTheme,
       customPresets: layout.customPresets,
       customThemeStarted: layout.customThemeStarted,
       liveNumberSize: layout.liveNumberSize,
       imageFile: layout.imageFile,
+      slideshowSeconds: layout.slideshowSeconds,
       giftColors: layout.giftColors,
       wallpaper: layout.wallpaper,
+      wallpaperFile: layout.wallpaperFile,
+      wallpaperFit: layout.wallpaperFit,
       eventRules: layout.eventRules
     };
-    if (!windows.some(app => app.box.classList.contains('active'))) focusWindow(frontVisibleWindow());
+    windowManager.ensureFocus();
     commitLayout();
   };
   byId('sample').onclick = () => addComments([{ name: 'リスナー', body: 'こんばんは！' }]);
@@ -1023,15 +1035,12 @@
     const color = { r: 241, g: 177, b: 65 };
     addComments([{ name: 'リスナー', body: '模擬ギフト', kind: 'unknown', label: '模擬ギフト', color }]);
   };
-  enableDrag(noticeHandle, notice, next => { layout.notice = next; });
+  windowManager.enableDrag(noticeHandle, notice, next => { layout.notice = next; }, {
+    onStart: () => clearTimeout(noticeTimer), onEnd: scheduleNoticeEnd
+  });
   connectComments();
-
-  function renderClock() {
-    byId('clock').textContent = clockFormat.format(new Date());
-  }
 
   renderLayout();
   new ResizeObserver(resize).observe(viewport);
-  renderClock();
-  setInterval(renderClock, 1000);
+  window.StreamOSClock.mount({ byId, state: () => layout.clock, commit: commitLayout });
 })();
